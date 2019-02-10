@@ -236,5 +236,8 @@ if __name__ == "__main__":
 					assert stream.fhandle.tell() == endDsplist
 
 					stream.fhandle.seek(dspStart + dspsize)
-	obj.write("##" + str(texNum))
+	try:
+		obj.write("##" + str(texNum))
+	except NameError:
+		print("No textures to reference in obj")
 	BaseShape.importIni(ini)
