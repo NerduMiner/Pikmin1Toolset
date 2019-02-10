@@ -25,6 +25,9 @@ with open(sys.argv[1], "r") as obj:
         if ('#') in line:
             facedump.write(line)
             line = line[1:]
+        if ('##') in line:
+            texNum = line[2:]
+            print(texNum,"textures found")
         if ('f') in line:
             #print(line)
             facedump.write(line)
@@ -74,7 +77,17 @@ with open("out0x11.bin", "wb") as normal:
             normDef = struct.pack('>f', float(normie))
             normal.write(normDef)
 print("Normal data added successfully")
-#with open("out0x20.bin", "wb") as textures:
+with open("out0x20.bin", "wb") as textures:
+    #is there a better way of doing this?
+    textures = []
+    for x in range(texNum):
+        txes[x] = open("txe"+[x]+".txe", rb)
+    textures.write(struct.pack('>i', texNum))
+    #Add Padding
+    for x in range(20):
+        textures.write(struct.pack('x'))
+    for x in range(texNum):
+        textures.write(txes[x].read())
 batchCnt = 0
 batchNum = []
 opcodes = []
