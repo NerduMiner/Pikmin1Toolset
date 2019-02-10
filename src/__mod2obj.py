@@ -236,5 +236,5 @@ if __name__ == "__main__":
 					assert stream.fhandle.tell() == endDsplist
 
 					stream.fhandle.seek(dspStart + dspsize)
-	obj.write("##" + texNum)
+	obj.write("##" + str(texNum))
 	BaseShape.importIni(ini)
