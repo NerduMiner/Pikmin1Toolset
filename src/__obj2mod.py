@@ -14,20 +14,25 @@ array = []
 fooce = []
 norm = []
 facedump = open("facedump.txt", "w")
+
 with open(sys.argv[1], "r") as obj:
     for line in obj:
+        if ('vn') in line:
+            line = line[2:]
+            norm.append([float(x) for x in line.split()])
+            normNum += 1
         if ('v') in line:
             #print(line)
             line = line[1:]
             array.append([float(x) for x in line.split()])
             #print(array)
             vertexNum += 1
+        if ('##') in line:
+            texNum = int(line[2:])
+            print(texNum,"textures found")
         if ('#') in line:
             facedump.write(line)
             line = line[1:]
-        if ('##') in line:
-            texNum = line[2:]
-            print(texNum,"textures found")
         if ('f') in line:
             #print(line)
             facedump.write(line)
@@ -35,13 +40,10 @@ with open(sys.argv[1], "r") as obj:
             fooce.append([int(x) for x in line.split()])
             #print(fooce)
             faceNum += 1
-        if ('vn') in line:
-            line = line[1:]
-            norm.append([int(x) for x in line.split()])
-            normNum += 1
     print(str(vertexNum) + " vertices found.")
     print(str(faceNum) + " faces found.")
 facedump.close()
+
 with open("out0x00.bin", "wb") as header:
     for x in range(24):
         header.write(struct.pack('x'))
@@ -52,6 +54,7 @@ with open("out0x00.bin", "wb") as header:
     header.write(struct.pack(">I", now.hour+now.minute+now.second))
     for x in range(24):
         header.write(struct.pack('x'))
+
 with open("out0x10.bin", "wb") as vert:
     #0x10 starts with an identifier for how many vertices there are
     vertDef = struct.pack('>i', vertexNum)
@@ -66,6 +69,7 @@ with open("out0x10.bin", "wb") as vert:
             vertDef = struct.pack('>f', float(vertex))
             vert.write(vertDef)
 print("Vertex data added successfully")
+
 with open("out0x11.bin", "wb") as normal:
     #Add amount of normal vertices
     normal.write(struct.pack('>i', normNum))
@@ -77,17 +81,17 @@ with open("out0x11.bin", "wb") as normal:
             normDef = struct.pack('>f', float(normie))
             normal.write(normDef)
 print("Normal data added successfully")
+
 with open("out0x20.bin", "wb") as textures:
-    #is there a better way of doing this?
-    textures = []
-    for x in range(texNum):
-        txes[x] = open("txe"+[x]+".txe", rb)
     textures.write(struct.pack('>i', texNum))
     #Add Padding
     for x in range(20):
         textures.write(struct.pack('x'))
     for x in range(texNum):
-        textures.write(txes[x].read())
+        txes = open(str("txe"+str(x)+".txe"), 'rb')
+        textures.write(txes.read())
+print("Texture data added")
+
 batchCnt = 0
 batchNum = []
 opcodes = []
@@ -167,7 +171,8 @@ with open("out0x50.bin", "wb") as face:
     face.write(bytearray(padding))
     print(padNum,"bytes padded")
 print("Face data added completely")
-with open("out0xFFFF") as EOF:
+
+with open("out0xFFFF", 'wb') as EOF:
     for x in range(24):
         EOF.write(struct.pack('x'))
 print("EOF Chunk added successfully")
