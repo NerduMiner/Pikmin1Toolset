@@ -107,6 +107,7 @@ if __name__ == "__main__":
                 skipdiff = 0
                 with open(sys.argv[1], "rb") as f:
                         mod_sections = divSections(f)
+                print(mod_sections)
                         
                 obj = open("output.obj", "w+")
 
