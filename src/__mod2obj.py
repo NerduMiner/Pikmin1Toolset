@@ -8,7 +8,7 @@ from gx import VertexDescriptor, VTXFMT, VTX
 
 # Base provided by Yoshi2(RenolY2)
 # Work done by NerduMiner, Ambrosia
-def divSections(g, ini):
+def divSections(g):
 	sections = {}
 	result = None
 	while True:
@@ -33,8 +33,12 @@ def divSections(g, ini):
 			else:
 				break
 		else:
-			inifile = f.read()
 			ini.write(inifile.decode("shift-jis"))
+			if not BaseShape.getIniFile(g) == -1:
+				ini = open(sys.argv[1]+".ini", "w+")
+				inifile = f.read()
+				ini.write(inifile.decode("shift-jis"))
+				BaseShape.importIni(ini)
 			break
 	return sections
 
@@ -102,9 +106,8 @@ if __name__ == "__main__":
 	else:
 		opcodes = [0x98,0x90,0xA0]
 		skipdiff = 0
-		ini = open(sys.argv[1]+".ini", "w+")
 		with open(sys.argv[1], "rb") as f:
-			mod_sections = divSections(f, ini)
+			mod_sections = divSections(f)
 			
 		obj = open("output.obj", "w+")
 
@@ -240,4 +243,3 @@ if __name__ == "__main__":
 		obj.write("##" + str(texNum))
 	except NameError:
 		print("No textures to reference in obj")
-	BaseShape.importIni(ini)

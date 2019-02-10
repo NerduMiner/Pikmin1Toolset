@@ -79,6 +79,15 @@ class LightGroup():
                 return
 
 class BaseShape():
+    def getIniFile(f):
+        origin = f.tell()
+        f.seek(-4,2) # move 4 bytes away from end
+        test = f.read()
+        f.seek(origin)
+        if test.decode("shift-jis").find("}"):
+                return True
+        return False
+
     def isolateINISections(f):
         fContents = []
         fContentType = []
