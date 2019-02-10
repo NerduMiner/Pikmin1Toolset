@@ -141,7 +141,7 @@ with open("out0x50.bin", "wb") as face:
             face.write(struct.pack(">H", fooce[y][1]))
             face.write(struct.pack(">H", fooce[y][2]))
     #Finally we must pad out to the next multiple of 32 bytes
-    faceoutput = "C:/Users/Admin/Documents/Pikmin 1 Hacking/out0x50.bin"
+    faceoutput = "out0x50.bin"
     #Add 8 to size because of section header
     size = face.tell()+8
     print(size,"bytes before padding")
