@@ -112,27 +112,18 @@ class BaseShape():
         return fContents, fContentType# return the sections
     
     def importIni(f):
-        print("importing ini...")
+        print("PRINTING INI INFO... \n \n \n")
         fContents, fContentType = BaseShape.isolateINISections(f)
         for i in range(len(fContentType)):
             #print("CONTENT TYPE = " + str(fContentType[i]) + "\n")
             if not fContentType[i].find("collinfo\n") == -1:
-                print("COLLINFO")
+                print("COLLINFO!!")
                 ObjCollInfo.loadini(fContents)
             if not fContentType[i].find("lightgroup\n") == -1:
                 print("LIGHT GROUP!!")
                 LightGroup.loadini(fContents)
-           # if not fContentType[i].find("routes") == -1:
-               # print("routes")'''
-
-f = open("mario.mod.ini")
-
-BaseShape.importIni(f)
-
-
-
-
-
+            if not fContentType[i].find("routes") == -1:
+                print("ROUTES!!")
 
 
 
