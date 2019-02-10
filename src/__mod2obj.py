@@ -33,7 +33,6 @@ def divSections(g):
 			else:
 				break
 		else:
-			ini.write(inifile.decode("shift-jis"))
 			if not BaseShape.getIniFile(g) == -1:
 				ini = open(sys.argv[1]+".ini", "w+")
 				inifile = f.read()
