@@ -74,6 +74,7 @@ with open("out0x11.bin", "wb") as normal:
             normDef = struct.pack('>f', float(normie))
             normal.write(normDef)
 print("Normal data added successfully")
+#with open("out0x20.bin", "wb") as textures:
 batchCnt = 0
 batchNum = []
 opcodes = []
