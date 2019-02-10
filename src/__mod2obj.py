@@ -33,11 +33,11 @@ def divSections(g):
 			else:
 				break
 		else:
-			if not BaseShape.getIniFile(g) == -1:
+                        if BaseShape.getIniFile(g):
 				ini = open(sys.argv[1]+".ini", "w+")
 				inifile = f.read()
 				ini.write(inifile.decode("shift-jis"))
-				BaseShape.importIni(ini)
+				BaseShape.loadIni(ini)
 			break
 	return sections
 
@@ -140,15 +140,17 @@ if __name__ == "__main__":
 			textures.fhandle.read(0x14)
 			for i in range(texNum):
 				texFile = open("txe"+str(i)+".txe", "wb")
-				width = textures.readUInt16()
-				texFile.write(struct.pack(">H", width))
+				
+				width = textures.readUInt16() # get vars
 				height = textures.readUInt16()
-				texFile.write(struct.pack(">H", height))
 				unk = textures.readUInt16()
-				texFile.write(struct.pack(">H", unk))
 				format = textures.readUInt16()
-				texFile.write(struct.pack(">H", format))
 				unk2 = textures.readUInt32()
+				
+				texFile.write(struct.pack(">H", format)) # write vars
+				texFile.write(struct.pack(">H", width))
+				texFile.write(struct.pack(">H", height))
+				texFile.write(struct.pack(">H", unk))
 				texFile.write(struct.pack(">I", unk))
 				print("txe",i,"data: W/H:",width,height,"format:",format)
 				#textures.skipPadding()
@@ -242,3 +244,4 @@ if __name__ == "__main__":
 		obj.write("##" + str(texNum))
 	except NameError:
 		print("No textures to reference in obj")
+	BaseShape.importIni(ini)
