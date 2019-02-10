@@ -105,7 +105,7 @@ if __name__ == "__main__":
 		ini = open(sys.argv[1]+".ini", "w+")
 		with open(sys.argv[1], "rb") as f:
 			mod_sections = divSections(f, ini)
-			#BaseShape.importIni(ini)
+			BaseShape.importIni(ini)
 			
 		obj = open("output.obj", "w+")
 
