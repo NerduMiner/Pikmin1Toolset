@@ -84,7 +84,7 @@ class BaseShape():
         f.seek(-4,2) # move 4 bytes away from end
         test = f.read()
         f.seek(origin)
-        if test.decode("shift-jis").find("}"):
+        if not test.decode("shift-jis").find("}") == -1:
                 return True
         return False
 
@@ -94,7 +94,7 @@ class BaseShape():
         sectionRead = False
         sectionOpened = 0
         sectionClosed = 0
-        for line in f: # while (!Cmdstream::endofcmds(v18) && !Cmdstream::endofsection(v18))
+        for line in f:
             descriptor = CmdStream.getToken(line, 0) #CmdStream::isToken
 
             if not (line and line.strip()): # if line is white space 
