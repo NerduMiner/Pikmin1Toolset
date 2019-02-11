@@ -85,7 +85,8 @@ class BaseShape():
         test = f.read()
         f.seek(origin)
         if not test.decode("shift-jis").find("}") == -1:
-                return True
+            print("INI FILE DETECTED")
+            return True
         return False
 
     def isolateINISections(f):

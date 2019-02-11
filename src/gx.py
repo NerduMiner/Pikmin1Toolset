@@ -84,7 +84,6 @@ class VertexDescriptor(object):
             raise RuntimeError("Unknown enum for format: {0}", str(enumval))
 
     def from_value(self, val):
-        #print("test", bin(val))
         self.posmat = (val & 0b1) == 1
         val = val >> 1
 
@@ -140,4 +139,3 @@ if __name__ == "__main__":
 
     vcd = VertexDescriptor()
     vcd.from_pikmin1(0x3, hasNormals=True)
-    print(vcd)

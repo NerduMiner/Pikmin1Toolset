@@ -1,4 +1,5 @@
-'''The Zen of Python, by Tim Peters
+'''
+The Zen of Python, by Tim Peters
 
 Beautiful is better than ugly.
 Explicit is better than implicit.
@@ -18,18 +19,19 @@ Now is better than never.
 Although never is often better than *right* now.
 If the implementation is hard to explain, it's a bad idea.
 If the implementation is easy to explain, it may be a good idea.
-Namespaces are one honking great idea -- let's do more of those!'''
+Namespaces are one honking great idea -- let's do more of those!
+'''
 
 import sys
 import struct
 import os
 import io
 from yoshiStuf import *
-from ambroStuf import *
 from gx import VertexDescriptor, VTXFMT, VTX
 
 # Base provided by Yoshi2(RenolY2)
 # Work done by NerduMiner, Ambrosia
+from ambroStuf import *
 def divSections(g):
         sections = {}
         result = None
@@ -40,7 +42,7 @@ def divSections(g):
                         meta = g.read(8)
                         if len(meta) == 8: # if the length of metadata (g.read(8)) == 8 then..
                                 ID, length = struct.unpack(">II", meta)
-                                print("opcode:",struct.pack('>I',ID),"Length:",length,"bytes \n")
+                                #print("opcode:",struct.pack('>I',ID),"Length:",length,"bytes \n")
                                 data = g.read(length)
                         
                                 result = ID, length, data
@@ -53,10 +55,10 @@ def divSections(g):
                         
                 else:
                         if BaseShape.getIniFile(g):
-                                ini = open(sys.argv[1]+".ini", "w")
+                                ini = open(sys.argv[1]+".ini", "r+")
                                 inifile = f.read()
                                 ini.write(inifile.decode("shift-jis"))
-                                BaseShape.importIni(inifile.decode("shift-jis"))
+                                BaseShape.importIni(ini)
                         break
         return sections
 
@@ -119,8 +121,14 @@ def __enter__(self):
         return self
 
 if __name__ == "__main__":
-        if len(sys.argv[1]) == 0:
-                print("Usage: drag and drop mod file onto program")
+        try:
+                var = sys.argv[1]
+        except IndexError:
+                print(".mod to .obj")
+                print("USAGE: drag and drop mod file onto program\n")
+                print("Main programmers, NerduMiner, Ambrosia")
+                print("Special thanks to RenolY2 AKA Yoshi2 for the face reading base.")
+                
         else:
                 opcodes = [0x98,0x90,0xA0]
                 skipdiff = 0
@@ -128,6 +136,7 @@ if __name__ == "__main__":
                         mod_sections = divSections(f)
                         
                 obj = open("output.obj", "w+")
+                objWrite = obj.write
 
                 #First we're gonna get them sweet sweet verticies
                 vertices = mod_sections[0x10][1]
@@ -137,7 +146,7 @@ if __name__ == "__main__":
                 #skip padding
                 vertices.fhandle.read(0x14)
                 for x in range(vertexNum):
-                        obj.write("v "+str(vertices.readFloat())+" "+str(vertices.readFloat())+" "+str(vertices.readFloat())+"\n")
+                        objWrite("v "+str(vertices.readFloat())+" "+str(vertices.readFloat())+" "+str(vertices.readFloat())+"\n")
 
                 #Next, we will get the vertex normals
                 normals = mod_sections[0x11][1]
@@ -147,13 +156,12 @@ if __name__ == "__main__":
                 #skip padding
                 normals.fhandle.read(0x14)
                 for x in range(normalNum):
-                        obj.write("vn "+str(normals.readFloat())+" "+str(normals.readFloat())+" "+str(normals.readFloat())+"\n")
+                        objWrite("vn "+str(normals.readFloat())+" "+str(normals.readFloat())+" "+str(normals.readFloat())+"\n")
 
                 try:
                         #now it is time for texture extracting
                         textures = mod_sections[0x20][1]
                         texNum = textures.readInt32()
-                        #t.write(struct.pack(">i", texNum))
                         print(str(texNum)+" textures found \n")
                         #skip padding
                         textures.fhandle.read(0x14)
@@ -199,11 +207,8 @@ if __name__ == "__main__":
                         unkown1 = stream.readInt32()
                         vcd = VertexDescriptor()
                         vcd.from_pikmin1(stream.readInt32(), hasNormals=0x11 in mod_sections)
-                        print(vcd)
                         mtxgroupcnt = stream.readInt32()
-                        print(mtxgroupcnt)
-
-                        obj.write("o mesh"+str(batchNum)+"\n")
+                        objWrite("o mesh"+str(batchNum)+"\n")
 
                         for mtxgroupnum in range(mtxgroupcnt):
                                 unkcnt = stream.readInt32()
@@ -248,14 +253,14 @@ if __name__ == "__main__":
                                                                 cPoly.append(posIdx)
                                                                 
                                                         if opcode == 0x98:
-                                                                obj.write("# 0x98\n")
+                                                                objWrite("# 0x98\n")
                                                         elif opcode == 0xA0:
-                                                                obj.write("# 0xA0\n")
+                                                                objWrite("# 0xA0\n")
 
                                                         cPoly = triConv(cPoly, opcode)
 
                                                         for poly in cPoly:
-                                                                obj.write("f "+str(poly[0])+" "+str(poly[1])+" "+str(poly[2])+"\n")
+                                                                objWrite("f "+str(poly[0])+" "+str(poly[1])+" "+str(poly[2])+"\n")
                                                 elif opcode == 0x00:
                                                         pass
                                                 else:
@@ -263,7 +268,8 @@ if __name__ == "__main__":
                                         assert stream.fhandle.tell() == endDsplist
 
                                         stream.fhandle.seek(dspStart + dspsize)
-        try:
-                obj.write("##" + str(texNum))
-        except NameError:
-                print("No textures to reference in obj")
+                try:
+                        objWrite("##" + str(texNum))
+                except NameError:
+                        print("No textures to reference in obj")
+
