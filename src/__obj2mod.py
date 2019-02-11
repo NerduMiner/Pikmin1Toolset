@@ -2,8 +2,10 @@
 import struct
 import sys
 import os
-import datetime
+import io
+from yoshiStuf import *
 from array import array
+from datetime import datetime
 #Once we have edited or made a new obj, it's time to import
 #This is as simple as creating new sections of a .mod file
 #and using ModPacker to put everything together
@@ -16,6 +18,11 @@ norm = []
 sections = [0x00, 0xFFFF]
 facedump = open("facedump.txt", "w+")
 outputMod = open("output.mod", 'wb+')
+
+def write_pad32(f): # IMPORTANT
+    next_aligned_pos = (f.tell() + 0x1F) & ~0x1F
+
+    f.write(b"\x00"*(next_aligned_pos - f.tell()))
 
 def divSections(g):
     sections = {}
@@ -36,11 +43,11 @@ def divSections(g):
             else:
                 result = None
                 #if we have a proper header, put this all into sections
-                if result is not None:
-                    ID, length, data = result
-                    sections[ID] = (length, bStream(io.BytesIO(data)), start)
-                else:
-                    break
+            if result is not None:
+                ID, length, data = result
+                sections[ID] = (length, bStream(io.BytesIO(data)), start)
+            else:
+                break
         else:
             break
     return sections
@@ -89,19 +96,26 @@ print(modSection)
 
 #with open("out0x00.bin", "wb+") as header:
 if 0x00 in sections and 0x00 in modSection:
-    header = bytearray()
+    header = []
     for x in range(24):
         header.append(struct.pack('x'))
-    now = datetime.datetime.now()
-    header.append(struct.pack(">H", now.year))
-    header.append(struct.pack(">B", now.month))
-    header.append(struct.pack(">B", now.day))
-    header.append(struct.pack(">I", now.hour+now.minute+now.second))
+    time = datetime.now()
+    header.append(struct.pack(">H", time.year))
+    header.append(struct.pack(">B", time.month))
+    header.append(struct.pack(">B", time.day))
+    header.append(struct.pack(">I", time.hour+time.minute+time.second))
     for x in range(24):
         header.append(struct.pack('x'))
     outputMod.write(struct.pack('>I', 0x00000000))
     outputMod.write(struct.pack('>I', len(header)))
-    outputMod.write(header)
+    headerD = []
+    headerDataAppend = headerD.append
+    outputModWrite = outputMod.write
+    for data in header:
+        headerDataAppend (data)
+    for byte in headerD:
+        outputModWrite (byte)
+    write_pad32(outputMod)
     header = []
 else:
     outputMod.write(struct.pack('>I', 0x00000000))
@@ -109,7 +123,7 @@ else:
 
 #with open("out0x10.bin", "wb+") as vert:
 if 0x10 in sections and 0x10 in modSection:
-    vert = bytearray()
+    vert = []
     #0x10 starts with an identifier for how many vertices there are
     vertDef = struct.pack('>i', vertexNum)
     vert.append(vertDef)
@@ -124,7 +138,14 @@ if 0x10 in sections and 0x10 in modSection:
             vert.append(vertDef)
     outputMod.write(struct.pack('>I', 0x00000010))
     outputMod.write(struct.pack('>I', len(vert)))
-    outputMod.write(vert)
+    vertD = []
+    vertDataAppend = vertD.append
+    outputModWrite = outputMod.write
+    for data in vert:
+        vertDataAppend (data)
+    for byte in vertD:
+        outputModWrite (byte)
+    write_pad32(outputMod)
     vert = []
 else:
     outputMod.write(struct.pack('>I', 0x00000010))
@@ -134,7 +155,7 @@ print("Vertex data added successfully")
 
 #with open("out0x11.bin", "wb+") as normal:
 if 0x11 in sections and 0x11 in modSection:
-    normal = bytearray()
+    normal = []
     #Add amount of normal vertices
     normal.append(struct.pack('>i', normNum))
     for x in range(20):
@@ -146,7 +167,14 @@ if 0x11 in sections and 0x11 in modSection:
             normal.append(normDef)
     outputMod.write(struct.pack('>I', 0x00000011))
     outputMod.write(struct.pack('>I', len(normal)))
-    outputMod.write(normal)
+    normalD = []
+    normalDataAppend = normalD.append
+    outputModWrite = outputMod.write
+    for data in normal:
+        normalDataAppend (data)
+    for byte in normalD:
+        outputModWrite (byte)
+    write_pad32(outputMod)
     normal = []
 else:
     outputMod.write(struct.pack('>I', 0x00000011))
@@ -156,7 +184,7 @@ print("Normal data added successfully")
 
 #with open("out0x20.bin", "wb+") as textures:
 if 0x20 in sections and 0x20 in modSection:
-    textures = bytearray()
+    textures = []
     textures.append(struct.pack('>i', texNum))
     #Add Padding
     for x in range(20):
@@ -166,7 +194,14 @@ if 0x20 in sections and 0x20 in modSection:
         textures.append(txes.read())
     outputMod.write(struct.pack('>I', 0x00000020))
     outputMod.write(struct.pack('>I', len(textures)))
-    outputMod.write(textures)
+    textureD = []
+    textureDataAppend = textureD.append
+    outputModWrite = outputMod.write
+    for data in textures:
+        textureDataAppend (data)
+    for byte in textureD:
+        outputModWrite (byte)
+    write_pad32(outputMod)
     textures = []
 else:
     outputMod.write(struct.pack('>I', 0x00000020))
@@ -202,12 +237,12 @@ with open("facedump.txt", "r") as faceRead:
             batchCnt += 1
 #with open("out0x50.bin", "wb") as face:
 if 0x50 in sections and 0x50 in modSection:
-    face = bytearray()
+    face = []
     print("batchNum",len(batchNum),"# of opcodes",len(opcodes))
     face.append(struct.pack(">i", len(batchNum)))
     # correctly pad out the section
     faceoutput = "out0x50.bin"
-    size = face.tell()+8
+    size = len(face)+8
     print(size,"bytes before padding")
     if size % 32 != 0:
         padNum = 32 - (size % 32)
@@ -225,7 +260,7 @@ if 0x50 in sections and 0x50 in modSection:
     face.append(struct.pack(">I", 0xADBE))#unkown2
     face.append(struct.pack(">I", 0xEFDE))#command count
     face.append(struct.pack(">I", 0xADBE))#disp size
-    size = face.tell()+8
+    size = len(face)+8
     print(size,"bytes before padding")
     if size % 32 != 0:
         padNum = 32 - (size % 32)
@@ -245,7 +280,7 @@ if 0x50 in sections and 0x50 in modSection:
     #Finally we must pad out to the next multiple of 32 bytes
     faceoutput = "out0x50.bin"
     #Add 8 to size because of section header
-    size = face.tell()+8
+    size = len(face)+8
     print(size,"bytes before padding")
     if size % 32 != 0:
         padNum = 32 - (size % 32)
@@ -256,7 +291,14 @@ if 0x50 in sections and 0x50 in modSection:
     print(padNum,"bytes padded")
     outputMod.write(struct.pack('>I', 0x00000050))
     outputMod.write(struct.pack('>I', len(face)))
-    outputMod.write(face)
+    faceD = []
+    faceDataAppend = faceD.append
+    outputModWrite = outputMod.write
+    for data in face:
+        faceDataAppend (data)
+    for byte in faceD:
+        outputModWrite (byte)
+    write_pad32(outputMod)
     face = []
 else:
     outputMod.write(struct.pack('>I', 0x00000050))
@@ -264,13 +306,21 @@ else:
     outputMod.write(modSection[0x50][1])
 print("Face data added completely")
 
-with open("out0xFFFF", 'wb') as EOF:
-    EOF = bytearray()
+#with open("out0xFFFF", 'wb') as EOF:
+if 0xFFFF in sections and 0xFFFF in modSection:
+    EOF = []
     for x in range(24):
         EOF.append(struct.pack('x'))
     outputMod.write(struct.pack('>I', 0x0000FFFF))
     outputMod.write(struct.pack('>I', len(EOF)))
-    outputMod.write(EOF)
+    EOFD = []
+    EOFDataAppend = EOFD.append
+    outputModWrite = outputMod.write
+    for data in EOF:
+        EOFDataAppend (data)
+    for byte in EOFD:
+        outputModWrite (byte)
+    write_pad32(outputMod)
     EOF = []
 print("EOF Chunk added successfully")
     #P S E U D O C O D E
