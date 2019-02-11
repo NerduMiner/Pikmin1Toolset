@@ -55,7 +55,7 @@ def divSections(g):
                         
                 else:
                         if BaseShape.getIniFile(g):
-                                ini = open(sys.argv[1]+".ini", "r+")
+                                ini = open(sys.argv[1]+".ini", "w+")
                                 inifile = f.read()
                                 ini.write(inifile.decode("shift-jis"))
                                 BaseShape.importIni(ini)
@@ -155,6 +155,7 @@ if __name__ == "__main__":
                 
                 #skip padding
                 normals.fhandle.read(0x14)
+                
                 for x in range(normalNum):
                         objWrite("vn "+str(normals.readFloat())+" "+str(normals.readFloat())+" "+str(normals.readFloat())+"\n")
 
