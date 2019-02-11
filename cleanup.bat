@@ -3,3 +3,4 @@ del /S *.txt
 del /S *.obj
 del /S *.ini
 del /S output.mod
+rmdir output

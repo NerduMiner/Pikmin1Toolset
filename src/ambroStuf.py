@@ -1,4 +1,4 @@
-import os
+#import os
 class CmdStream():    
     def getToken(line, getTokenIndex):
         if not (line and line.strip()): # if whitespace
@@ -15,8 +15,7 @@ class ObjCollInfo():
     def loadini(fContents):
         for line in fContents:
             if not line.find("{") == -1: # if closed bracket
-                print("opening bracket found!")
-                print("name of collinfo part : " + CmdStream.getToken(line, -1))
+                print("\nname of collinfo part : " + CmdStream.getToken(line, -1))
 
             if not line.find("id") == -1:
                 print("id : " + CmdStream.getToken(line, 1))
@@ -39,16 +38,14 @@ class ObjCollInfo():
             if not line.find("collinfo") == -1:
                 print("REPEATING COLLINFO FUNC!!!")
                 
-            if not line.find("}") == -1: # if closed bracket
-                print("closed bracket found!\n\n")
+            if not line.find("}") == -1:
                 return
 
 class LightGroup():
     def loadini(fContents):
         for line in fContents:
             if not line.find("{") == -1: # if closed bracket
-                print("opening bracket found!")
-                print("name of lightgroup part : " + CmdStream.getToken(line, -1))
+                print("\nname of lightgroup part : " + CmdStream.getToken(line, -1))
 
             if not line.find("type") == -1:
                 print("type : " + CmdStream.getToken (line,1))
@@ -67,6 +64,17 @@ class LightGroup():
 
             if not line.find("lightflare") == -1:
                 print("lightflare detected! \n")
+                LightFlare.loadini(fContents)
+                
+            if not line.find("}") == -1:
+                return
+
+class LightFlare():
+    def loadini(fContents):
+        for line in fContents:
+            if not line.find("{") == -1: # if closed bracket
+                print("LIGHTFLARE SUB SECTION FOUND\n")
+                print("name of lightflare : " + CmdStream.getToken(line, -1))
 
             if not line.find("size") == -1:
                 print("size of lightflare : " + CmdStream.getToken(line, 1))
@@ -75,7 +83,6 @@ class LightGroup():
                 print("position of lightflare : " + CmdStream.getToken(line, 1) + CmdStream.getToken(line, 2) + CmdStream.getToken(line, 3))
                 
             if not line.find("}") == -1: # if closed bracket
-                print("closed bracket found!\n\n")
                 return
 
 class BaseShape():
@@ -124,13 +131,15 @@ class BaseShape():
     def importIni(f):
         print("PRINTING INI INFO... \n \n \n")
         fContents, fContentType = BaseShape.isolateINISections(f)
+        print("".join(fContentType))
         for i in range(len(fContentType)):
+            print("\n")
             #print("CONTENT TYPE = " + str(fContentType[i]) + "\n")
             if not fContentType[i].find("collinfo\n") == -1:
-                print("COLLINFO!!")
+                #print("COLLINFO!!")
                 ObjCollInfo.loadini(fContents)
             if not fContentType[i].find("lightgroup\n") == -1:
-                print("LIGHT GROUP!!")
+                #print("LIGHT GROUP!!")
                 LightGroup.loadini(fContents)
             if not fContentType[i].find("routes") == -1:
                 print("ROUTES!!")

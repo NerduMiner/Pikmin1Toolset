@@ -1,2 +1,4 @@
-python "src/__obj2mod.py" %1 slp_d_4.mod
-PAUSE
+@echo off
+mkdir output
+cd output
+python "src/__obj2mod.py" %1 > modWriteLog.txt

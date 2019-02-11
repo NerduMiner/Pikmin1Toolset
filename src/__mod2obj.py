@@ -55,10 +55,13 @@ def divSections(g):
                         
                 else:
                         if BaseShape.getIniFile(g):
-                                ini = open(sys.argv[1]+".ini", "w+")
+                                ini = open(sys.argv[1]+".ini", "w") #create file
+                                ini.close() #close
+                                
+                                ini = open(sys.argv[1]+".ini", "r+")
                                 inifile = f.read()
                                 ini.write(inifile.decode("shift-jis"))
-                                BaseShape.importIni(ini)
+                                ini.close()
                         break
         return sections
 
@@ -273,4 +276,15 @@ if __name__ == "__main__":
                         objWrite("##" + str(texNum))
                 except NameError:
                         print("No textures to reference in obj")
+
+                try:
+                        ini = open(sys.argv[1]+".ini", "r+")
+                        BaseShape.importIni(ini)
+                except Exception as msg:
+                        print(msg)
+
+
+
+
+                        
 
