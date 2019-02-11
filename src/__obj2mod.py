@@ -153,6 +153,13 @@ else:
     outputMod.write(modSection[0x10][1])
 print("Vertex data added successfully")
 
+if 0x13 in modSection:
+    #Per Mesh Textures Hue Modifiers
+    outputMod.write(struct.pack('>I', 0x00000013))
+    outputMod.write(modSection[0x13][0])
+    outputMod.write(modSection[0x13][1])
+    write_pad32(outputMod)
+
 #with open("out0x11.bin", "wb+") as normal:
 if 0x11 in sections and 0x11 in modSection:
     normal = []
@@ -182,6 +189,31 @@ else:
     outputMod.write(modSection[0x11][1])
 print("Normal data added successfully")
 
+'''
+if 0x18 in modSection:
+    #UV Mapping
+    outputMod.write(struct.pack('>I', 0x00000018))
+    outputMod.write(bytes(modSection[0x18][0]))
+    outputMod.write(modSection[0x18][1])
+    write_pad32(outputMod)
+'''
+
+'''
+if 0x19 in modSection:
+    #Unk section 0x19
+    outputMod.write(struct.pack('>I', 0x00000019))
+    outputMod.write(bytes(modSection[0x19][0]))
+    outputMod.write(modSection[0x19][1])
+    write_pad32(outputMod)
+'''
+
+if 0x1A in modSection:
+    #Unk section 0x1A
+    outputMod.write(struct.pack('>I', 0x0000001A))
+    outputMod.write(modSection[0x1A][0])
+    outputMod.write(modSection[0x1A][1])
+    write_pad32(outputMod)
+
 #with open("out0x20.bin", "wb+") as textures:
 if 0x20 in sections and 0x20 in modSection:
     textures = []
@@ -208,6 +240,33 @@ else:
     outputMod.write(modSection[0x20][0])
     outputMod.write(modSection[0x20][1])
 print("Texture data added")
+
+'''
+if 0x22 in modSection:
+    #Mipmap Data Chunk
+    outputMod.write(struct.pack('>I', 0x00000022))
+    outputMod.write(modSection[0x22][0])
+    outputMod.write(modSection[0x22][1])
+    write_pad32(outputMod)
+'''
+
+'''
+if 0x30 in modSection:
+    #Mesh Color Definitions
+    outputMod.write(struct.pack('>I', 0x00000030))
+    outputMod.write(modSection[0x30][0])
+    outputMod.write(modSection[0x30][1])
+    write_pad32(outputMod)
+'''
+
+'''
+if 0x40 in modSection:
+    #Unk Chunk 0x40
+    outputMod.write(struct.pack('>I', 0x00000040))
+    outputMod.write(modSection[0x40][0])
+    outputMod.write(modSection[0x40][1])
+    write_pad32(outputMod)
+'''
 
 batchCnt = 0
 batchNum = []
@@ -306,7 +365,40 @@ else:
     outputMod.write(modSection[0x50][1])
 print("Face data added completely")
 
-#with open("out0xFFFF", 'wb') as EOF:
+'''
+if 0x60 in modSection:
+    #Unk Chunk 0x60
+    outputMod.write(struct.pack('>I', 0x00000060))
+    outputMod.write(modSection[0x60][0])
+    outputMod.write(modSection[0x60][1])
+    write_pad32(outputMod)
+'''
+
+if 0x80 in modSection:
+    #Texture Palettes Chunk
+    outputMod.write(struct.pack('>I', 0x00000080))
+    outputMod.write(modSection[0x80][0])
+    outputMod.write(modSection[0x80][1])
+    write_pad32(outputMod)
+
+'''
+if 0x100 in modSection:
+    #Floor Collision Geometry
+    outputMod.write(struct.pack('>I', 0x00000100))
+    outputMod.write(modSection[0x100][0])
+    outputMod.write(modSection[0x100][1])
+    write_pad32(outputMod)
+'''
+
+'''
+if 0x110 in modSection:
+    #MapMgr bounds + Coll Tris
+    outputMod.write(struct.pack('>I', 0x00000110))
+    outputMod.write(modSection[0x110][0])
+    outputMod.write(modSection[0x110][1])
+    write_pad32(outputMod)
+'''
+
 if 0xFFFF in sections and 0xFFFF in modSection:
     EOF = []
     for x in range(24):
