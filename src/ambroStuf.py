@@ -1,15 +1,25 @@
-#import os
-class CmdStream():    
+import os
+from pathlib import Path
+class CmdStream():
     def getToken(line, getTokenIndex):
         if not (line and line.strip()): # if whitespace
             return ""
-        #if hasComments:
-         #   line.split("//", 1)
         try:
             if line:
                 return line.split()[getTokenIndex]
         except IndexError:
             pass
+
+    def openFileInFolder(filename, directoryname, mode):
+        try:
+            os.makedirs(directoryname)
+        except OSError:
+            pass
+        name = directoryname + "/" + Path(filename).name
+        f = open(name, mode)
+        return f
+        
+        
 
 class ObjCollInfo():
     def loadini(fContents):
@@ -89,7 +99,7 @@ class BaseShape():
     def getIniFile(f):
         origin = f.tell()
         f.seek(-4,2) # move 4 bytes away from end
-        test = f.read()
+        test = f.read() # read the rest of the file
         f.seek(origin)
         if not test.decode("shift-jis").find("}") == -1:
             print("INI FILE DETECTED")
@@ -123,26 +133,28 @@ class BaseShape():
                 fContents.append(line) # append that line to the array
 
         if sectionOpened == sectionClosed:
-            print(str(sectionOpened) + " sections detected") # make sure we have confirmed amount of sections
+            print(str(sectionOpened) + " INI sections detected") # make sure we have confirmed amount of sections
             #print("section content types are:\n"+"".join(fContentType))
             return fContents, fContentType
         return fContents, fContentType# return the sections
     
     def importIni(f):
-        print("PRINTING INI INFO... \n \n \n")
+        #print("PRINTING INI INFO... \n \n \n")
         fContents, fContentType = BaseShape.isolateINISections(f)
-        print("".join(fContentType))
-        for i in range(len(fContentType)):
-            print("\n")
-            #print("CONTENT TYPE = " + str(fContentType[i]) + "\n")
-            if not fContentType[i].find("collinfo\n") == -1:
-                #print("COLLINFO!!")
-                ObjCollInfo.loadini(fContents)
-            if not fContentType[i].find("lightgroup\n") == -1:
-                #print("LIGHT GROUP!!")
-                LightGroup.loadini(fContents)
-            if not fContentType[i].find("routes") == -1:
-                print("ROUTES!!")
-
-
-
+        if fContentType is not None:
+            for i in range(len(fContentType)):
+                #print("CONTENT TYPE = " + str(fContentType[i]) + "\n")
+                if not fContentType[i].find("collinfo\n") == -1:
+                    #print("COLLINFO!!")
+                    ObjCollInfo.loadini(fContents)
+                    
+                if not fContentType[i].find("lightgroup\n") == -1:
+                    #print("LIGHT GROUP!!")
+                    LightGroup.loadini(fContents)
+                    
+                if not fContentType[i].find("routes\n") or fContentType[i].find("point\n") or fContentType[i].find("link\n") == -1:
+                   # print("ROUTES!!")
+                   pass
+                else:
+                    print("ERR, UNKNOWN SECTION DETECTED")
+                    return

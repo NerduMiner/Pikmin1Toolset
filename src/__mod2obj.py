@@ -55,13 +55,12 @@ def divSections(g):
                         
                 else:
                         if BaseShape.getIniFile(g):
-                                ini = open(sys.argv[1]+".ini", "w") #create file
+                                ini = CmdStream.openFileInFolder(sys.argv[1]+".ini", "inifile", "w")
                                 ini.close() #close
-                                
-                                ini = open(sys.argv[1]+".ini", "r+")
-                                inifile = f.read()
-                                ini.write(inifile.decode("shift-jis"))
-                                ini.close()
+                                with CmdStream.openFileInFolder(sys.argv[1]+".ini", "inifile", "r+") as ini:
+                                        inifile = f.read()
+                                        ini.write(inifile.decode("shift-jis"))
+                                        ini.close()
                         break
         return sections
 
@@ -138,150 +137,150 @@ if __name__ == "__main__":
                 with open(sys.argv[1], "rb") as f:
                         mod_sections = divSections(f)
                         
-                obj = open("output.obj", "w+")
-                objWrite = obj.write
+                with open("output.obj", "w+") as obj:
+                        objWrite = obj.write
 
-                #First we're gonna get them sweet sweet verticies
-                vertices = mod_sections[0x10][1]
-                vertexNum = vertices.readInt32()
-                print(str(vertexNum)+" vertices found.")
+                        #First we're gonna get them sweet sweet verticies
+                        vertices = mod_sections[0x10][1]
+                        vertexNum = vertices.readInt32()
+                        print(str(vertexNum)+" vertices found.")
 
-                #skip padding
-                vertices.fhandle.read(0x14)
-                for x in range(vertexNum):
-                        objWrite("v "+str(vertices.readFloat())+" "+str(vertices.readFloat())+" "+str(vertices.readFloat())+"\n")
-
-                #Next, we will get the vertex normals
-                normals = mod_sections[0x11][1]
-                normalNum = normals.readInt32()
-                print(normalNum,"vertex normals found.")
-                
-                #skip padding
-                normals.fhandle.read(0x14)
-                
-                for x in range(normalNum):
-                        objWrite("vn "+str(normals.readFloat())+" "+str(normals.readFloat())+" "+str(normals.readFloat())+"\n")
-
-                try:
-                        #now it is time for texture extracting
-                        textures = mod_sections[0x20][1]
-                        texNum = textures.readInt32()
-                        print(str(texNum)+" textures found \n")
                         #skip padding
-                        textures.fhandle.read(0x14)
-                        for i in range(texNum):
-                                texFile = open("txe"+str(i)+".txe", "wb")
-                                #cache write function
-                                texWrite = texFile.write
-                                width = textures.readUInt16() # get vars
-                                height = textures.readUInt16()
-                                unk = textures.readUInt16()
-                                format = textures.readUInt16()
-                                unk2 = textures.readUInt32()
-                                
-                                texWrite(struct.pack(">H", format)) # write vars
-                                texWrite(struct.pack(">H", width))
-                                texWrite(struct.pack(">H", height))
-                                texWrite(struct.pack(">H", unk))
-                                texWrite(struct.pack(">I", unk))
-                                print("txe",i,"data: W/H:",width,height,"format:",format, "\n")
-                                fpos = textures.fhandle.tell()+0x8
-                                if fpos % 0x20 == 0:
-                                        continue
-                                skipto = (fpos - (fpos % 0x20)) + 0x20 
-                                skipdiff = skipto - textures.fhandle.tell() - 0x8
-                                textures.fhandle.read(skipdiff)
-                                print("skipped",skipdiff,"bytes of padding")
-                                
-                                for x in range(skipdiff):
-                                        texWrite(struct.pack("x"))
+                        vertices.fhandle.read(0x14)
+                        for x in range(vertexNum):
+                                objWrite("v "+str(vertices.readFloat())+" "+str(vertices.readFloat())+" "+str(vertices.readFloat())+"\n")
 
-                                        
-                                texdata = textures.fhandle.read(calcSize(width,height,format))
-                                texWrite(texdata)
-                except KeyError as err:
-                        print("No textures found, skipping")
-                #Next we do the faces
-                stream, triStart = mod_sections[0x50][1], mod_sections[0x50][2]
-                print("vertices start at", hex(triStart))
-                batchCount = stream.readInt32()
-                stream.skipPadding()
+                        #Next, we will get the vertex normals
+                        normals = mod_sections[0x11][1]
+                        normalNum = normals.readInt32()
+                        print(normalNum,"vertex normals found.")
+                        
+                        #skip padding
+                        normals.fhandle.read(0x14)
+                        
+                        for x in range(normalNum):
+                                objWrite("vn "+str(normals.readFloat())+" "+str(normals.readFloat())+" "+str(normals.readFloat())+"\n")
 
-                for batchNum in range(batchCount):
-                        unkown1 = stream.readInt32()
-                        vcd = VertexDescriptor()
-                        vcd.from_pikmin1(stream.readInt32(), hasNormals=0x11 in mod_sections)
-                        mtxgroupcnt = stream.readInt32()
-                        objWrite("o mesh"+str(batchNum)+"\n")
+                        try:
+                                #now it is time for texture extracting
+                                textures = mod_sections[0x20][1]
+                                texNum = textures.readInt32()
+                                print(str(texNum)+" textures found \n")
+                                #skip padding
+                                textures.fhandle.read(0x14)
+                                for i in range(texNum):
+                                        with CmdStream.openFileInFolder("txe"+str(i)+".txe", "textures", "wb") as texFile:
+                                                #cache write function
+                                                texWrite = texFile.write
+                                                width = textures.readUInt16() # get vars
+                                                height = textures.readUInt16()
+                                                unk = textures.readUInt16()
+                                                format = textures.readUInt16()
+                                                unk2 = textures.readUInt32()
+                                                
+                                                texWrite(struct.pack(">H", format)) # write vars
+                                                texWrite(struct.pack(">H", width))
+                                                texWrite(struct.pack(">H", height))
+                                                texWrite(struct.pack(">H", unk))
+                                                texWrite(struct.pack(">I", unk))
+                                                print("txe",i,"data: W/H:",width,height,"format:",format, "\n")
+                                                fpos = textures.fhandle.tell()+0x8
+                                                if fpos % 0x20 == 0:
+                                                        continue
+                                                skipto = (fpos - (fpos % 0x20)) + 0x20 
+                                                skipdiff = skipto - textures.fhandle.tell() - 0x8
+                                                textures.fhandle.read(skipdiff)
+                                                print("skipped",skipdiff,"bytes of padding")
+                                                
+                                                for x in range(skipdiff):
+                                                        texWrite(struct.pack("x"))
 
-                        for mtxgroupnum in range(mtxgroupcnt):
-                                unkcnt = stream.readInt32()
-                                vals = []
-                                for i in range(unkcnt):
-                                        vals.append(stream.readUInt16())
+                                                        
+                                                texdata = textures.fhandle.read(calcSize(width,height,format))
+                                                texWrite(texdata)
+                        except KeyError as err:
+                                print("No textures found, skipping")
+                        #Next we do the faces
+                        stream, triStart = mod_sections[0x50][1], mod_sections[0x50][2]
+                        print("vertices start at", hex(triStart), "\n")
+                        batchCount = stream.readInt32()
+                        stream.skipPadding()
 
-                                dsplstcnt = stream.readInt32()
+                        for batchNum in range(batchCount):
+                                unkown1 = stream.readInt32()
+                                vcd = VertexDescriptor()
+                                vcd.from_pikmin1(stream.readInt32(), hasNormals=0x11 in mod_sections)
+                                mtxgroupcnt = stream.readInt32()
+                                objWrite("o mesh"+str(batchNum)+"\n")
 
-                                for dsplstnum in range(dsplstcnt):
-                                        unkown1 = stream.readUInt32()
-                                        cmdcnt = stream.readUInt32()
-                                        dspsize = stream.readUInt32()
+                                for mtxgroupnum in range(mtxgroupcnt):
+                                        unkcnt = stream.readInt32()
+                                        vals = []
+                                        for i in range(unkcnt):
+                                                vals.append(stream.readUInt16())
 
-                                        stream.skipPadding()
+                                        dsplstcnt = stream.readInt32()
 
-                                        dspStart = stream.fhandle.tell()
+                                        for dsplstnum in range(dsplstcnt):
+                                                unkown1 = stream.readUInt32()
+                                                cmdcnt = stream.readUInt32()
+                                                dspsize = stream.readUInt32()
 
-                                        dispdata = stream.fhandle.read(dspsize)
-                                        stream.fhandle.seek(dspStart)
-                                        endDsplist = dspStart + dspsize
+                                                stream.skipPadding()
 
-                                        while stream.fhandle.tell() < endDsplist:
-                                                opcode = stream.readUInt8()
+                                                dspStart = stream.fhandle.tell()
 
-                                                if opcode in (0x98, 0xA0):
-                                                        vCnt = stream.readUInt16()
-                                                        cPoly = []
-                                                        for x in range(vCnt):
-                                                                posIdx = None
-                                                                for attr, format in vcd.active_attributes():
-                                                                        if attr == VTX.Position:
-                                                                                posIdx = stream.readUInt16()+1
-                                                                        elif format is None:
-                                                                                stream.readUInt8()
-                                                                        elif format == VTXFMT.INDEX16:
-                                                                                stream.readUInt16()
-                                                                        else:
-                                                                                raise RuntimeError("format error")
-                                                                #Make sure posIdx isn't empty
-                                                                assert posIdx is not None
-                                                                cPoly.append(posIdx)
-                                                                
-                                                        if opcode == 0x98:
-                                                                objWrite("# 0x98\n")
-                                                        elif opcode == 0xA0:
-                                                                objWrite("# 0xA0\n")
+                                                dispdata = stream.fhandle.read(dspsize)
+                                                stream.fhandle.seek(dspStart)
+                                                endDsplist = dspStart + dspsize
 
-                                                        cPoly = triConv(cPoly, opcode)
+                                                while stream.fhandle.tell() < endDsplist:
+                                                        opcode = stream.readUInt8()
 
-                                                        for poly in cPoly:
-                                                                objWrite("f "+str(poly[0])+" "+str(poly[1])+" "+str(poly[2])+"\n")
-                                                elif opcode == 0x00:
-                                                        pass
-                                                else:
-                                                        raise RuntimeError("unkown opcode "+opcode)
-                                        assert stream.fhandle.tell() == endDsplist
+                                                        if opcode in (0x98, 0xA0):
+                                                                vCnt = stream.readUInt16()
+                                                                cPoly = []
+                                                                for x in range(vCnt):
+                                                                        posIdx = None
+                                                                        for attr, format in vcd.active_attributes():
+                                                                                if attr == VTX.Position:
+                                                                                        posIdx = stream.readUInt16()+1
+                                                                                elif format is None:
+                                                                                        stream.readUInt8()
+                                                                                elif format == VTXFMT.INDEX16:
+                                                                                        stream.readUInt16()
+                                                                                else:
+                                                                                        raise RuntimeError("format error")
+                                                                        #Make sure posIdx isn't empty
+                                                                        assert posIdx is not None
+                                                                        cPoly.append(posIdx)
+                                                                        
+                                                                if opcode == 0x98:
+                                                                        objWrite("# 0x98\n")
+                                                                elif opcode == 0xA0:
+                                                                        objWrite("# 0xA0\n")
 
-                                        stream.fhandle.seek(dspStart + dspsize)
-                try:
-                        objWrite("##" + str(texNum))
-                except NameError:
-                        print("No textures to reference in obj")
+                                                                cPoly = triConv(cPoly, opcode)
 
-                try:
-                        ini = open(sys.argv[1]+".ini", "r+")
-                        BaseShape.importIni(ini)
-                except Exception as msg:
-                        print(msg)
+                                                                for poly in cPoly:
+                                                                        objWrite("f "+str(poly[0])+" "+str(poly[1])+" "+str(poly[2])+"\n")
+                                                        elif opcode == 0x00:
+                                                                pass
+                                                        else:
+                                                                raise RuntimeError("unkown opcode "+opcode)
+                                                assert stream.fhandle.tell() == endDsplist
+
+                                                stream.fhandle.seek(dspStart + dspsize)
+                        try:
+                                objWrite("##" + str(texNum))
+                        except NameError:
+                                print("No textures to reference in obj")
+
+                        try:
+                                ini = CmdStream.openFileInFolder(sys.argv[1]+".ini", "inifile", "r+")
+                                BaseShape.importIni(ini)
+                        except Exception as msg:
+                                print(msg)
 
 
 
