@@ -44,7 +44,7 @@ from gx import VertexDescriptor, VTXFMT, VTX
 # Work done by NerduMiner, Ambrosia
 from ambroStuf import *
 def divSections(g):
-        sections = {}
+        sections = {} 
         result = None
         while True:
                 start = g.tell() # assign start of section
@@ -53,7 +53,7 @@ def divSections(g):
                         meta = g.read(8)
                         if len(meta) == 8: # if the length of metadata (g.read(8)) == 8 then..
                                 ID, length = struct.unpack(">II", meta)
-                                #print("opcode:",struct.pack('>I',ID),"Length:",length,"bytes \n")
+                                print("opcode:",struct.pack('>I',ID),"Length:",length,"bytes \n")
                                 data = g.read(length)
                         
                                 result = ID, length, data
@@ -75,7 +75,7 @@ def divSections(g):
                                         ini.close()
                                         return sections, True
                         break
-        return sections
+        return sections, False
 
 def triConv(poly, opc):
         if len(poly) == 3:
@@ -161,10 +161,12 @@ if __name__ == "__main__":
 
                 #First we're gonna get them sweet sweet verticies
                 vertices = mod_sections[0x10][1]
-                stream, triStart = mod_sections[0x50][1], mod_sections[0x50][2]
                 
                 #Next, we will get the vertex normals
                 normals = mod_sections[0x11][1]
+
+                #triangle start
+                stream, triStart = mod_sections[0x50][1], mod_sections[0x50][2]
                         
                 with open("output.obj", "w+") as obj:
                         objWrite = obj.write
@@ -270,7 +272,8 @@ if __name__ == "__main__":
                                                                 vCnt = stream.readUInt16()
                                                                 cPoly = []
                                                                 for x in range(vCnt):
-                                                                        posIdx = None
+                                                                        #print("guess what, im in a range called vCNT")
+                                                                        #posIdx = None
                                                                         for attr, format in vcd.active_attributes():
                                                                                 if attr == VTX.Position:
                                                                                         posIdx = stream.readUInt16()+1
