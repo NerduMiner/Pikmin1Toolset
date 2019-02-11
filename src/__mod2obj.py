@@ -20,11 +20,22 @@ Although never is often better than *right* now.
 If the implementation is hard to explain, it's a bad idea.
 If the implementation is easy to explain, it may be a good idea.
 Namespaces are one honking great idea -- let's do more of those!
-'''
 
-import sys # os stuff i assume
+print(f'{str(a)} {str(b)} {str(c)}')
+is faster than
+str(a) + " " + str(b) + " " + str(c)
+
+if result is not None:
+        print("yoite")
+        
+is slower than
+
+try:
+
+except result is None:
+
+'''
 import struct # for packing/unpacking vars
-import os # os commands
 import io # ?
 from yoshiStuf import *
 from gx import VertexDescriptor, VTXFMT, VTX
@@ -46,11 +57,12 @@ def divSections(g):
                                 data = g.read(length)
                         
                                 result = ID, length, data
-                                if result is not None:
+                                try:# result is not None:
                                         ID, length, data = result
                                         sections[ID] = (length, bStream(io.BytesIO(data)), start)
-                                else:
+                                except result is None:
                                         break
+                                        
                         #if we have a proper header, put this all into sections
                         
                 else:
@@ -70,32 +82,37 @@ def triConv(poly, opc):
                 return [poly]
                 
         newTri = []
+        newTriAppend = newTri.append
         
         if (opc == 0x98):
                 n = 2
-                for x in range(len(poly)-2):
+                pep = range(len(poly)-2)
+                for x in pep:
                         Tri = []
+                        TriAppend = Tri.append
                         isEven = (n%2) == 0
                         #if n == 2:
                         #1. append first poly
                         #2. append last poly since n is even
                         #3. append second poly since n is even
-                        Tri.append(poly[n-2])
-                        Tri.append((poly[n] if isEven else poly[n-1]))
-                        Tri.append((poly[n-1] if isEven else poly[n]))
+                        TriAppend(poly[n-2])
+                        TriAppend((poly[n] if isEven else poly[n-1]))
+                        TriAppend((poly[n-1] if isEven else poly[n]))
                         if (Tri[0] != Tri[1] and Tri[1] != Tri[2] and Tri[2] != Tri[0]):
-                                newTri.append(Tri)
+                                newTriAppend(Tri)
                         n += 1
         
         if (opc == 0xA0):
-                for x in range(1, len(poly)-1):
+                pop = range(1, len(poly)-1)
+                for x in pop:
                         Tri = []
+                        TriAppend = Tri.append
                         #append tris second, last, first
-                        Tri.append(poly[x])
-                        Tri.append(poly[x+1])
-                        Tri.append(poly[0])
+                        TriAppend(poly[x])
+                        TriAppend(poly[x+1])
+                        TriAppend(poly[0])
                         if (Tri[0] != Tri[1] and Tri[1] != Tri[2] and Tri[2] != Tri[0]):
-                                newTri.append(Tri)
+                                newTriAppend(Tri)
         
         return newTri
 
@@ -137,40 +154,38 @@ if __name__ == "__main__":
                 del var# delete the variables reference in memory
                 
                 opcodes = [0x98,0x90,0xA0]
+
                 skipdiff = 0
                 with open(sys.argv[1], "rb") as f:
                         mod_sections, hasIniFile = divSections(f)
+
+                #First we're gonna get them sweet sweet verticies
+                vertices = mod_sections[0x10][1]
+                stream, triStart = mod_sections[0x50][1], mod_sections[0x50][2]
+                
+                #Next, we will get the vertex normals
+                normals = mod_sections[0x11][1]
                         
                 with open("output.obj", "w+") as obj:
                         objWrite = obj.write
 
-                        #First we're gonna get them sweet sweet verticies
-                        vertices = mod_sections[0x10][1]
                         vertexNum = vertices.readInt32()
                         print(str(vertexNum)+" vertices found.")
-
                         #skip padding
-                        vertices.fhandle.read(0x14)
-                        for x in range(vertexNum):
+                        vertices.fhandle.read(0x14)                        
+                        
+                        for i in range(vertexNum):
                                 objWrite(f'v {str(vertices.readFloat())} {str(vertices.readFloat())} {str(vertices.readFloat())} \n')
-
-                        try:
-                                if hasIniFile:
-                                        BaseShape.importIni(sys.argv[1] + ".ini", "inifile")
-                        except Exception as msg:
-                                print(msg)
-
-                        #Next, we will get the vertex normals
-                        normals = mod_sections[0x11][1]
+                                
                         normalNum = normals.readInt32()
                         print(normalNum,"vertex normals found.")
+
+                        for i in range(normalNum):                                
+                                objWrite(f'vn {str(normals.readFloat())} {str(normals.readFloat())} {str(normals.readFloat())} \n') # faster than for loop
+
                         
                         #skip padding
                         normals.fhandle.read(0x14)
-
-                        for x in range(normalNum):
-                                #objWrite("vn "++++" "++"\n")
-                                objWrite(f'vn {str(normals.readFloat())} {str(normals.readFloat())} {str(normals.readFloat())} \n') # most efficient python 3 string concatenation 
 
                         try:
                                 #now it is time for texture extracting
@@ -213,7 +228,7 @@ if __name__ == "__main__":
                         except KeyError as err:
                                 print("No textures found, skipping")
                         #Next we do the faces
-                        stream, triStart = mod_sections[0x50][1], mod_sections[0x50][2]
+                        
                         print("vertices start at", hex(triStart), "\n")
                         batchCount = stream.readInt32()
                         stream.skipPadding()
@@ -228,8 +243,10 @@ if __name__ == "__main__":
                                 for mtxgroupnum in range(mtxgroupcnt):
                                         unkcnt = stream.readInt32()
                                         vals = []
-                                        for i in range(unkcnt):
-                                                vals.append(stream.readUInt16())
+
+                                        map(vals.append(stream.readUInt16()), range(unkcnt))
+                                       # for i in range(unkcnt):
+                                                
 
                                         dsplstcnt = stream.readInt32()
 
@@ -249,7 +266,7 @@ if __name__ == "__main__":
                                                 while stream.fhandle.tell() < endDsplist:
                                                         opcode = stream.readUInt8()
 
-                                                        if opcode in (0x98, 0xA0):
+                                                        if opcode == 0x98 or opcode == 0xA0:
                                                                 vCnt = stream.readUInt16()
                                                                 cPoly = []
                                                                 for x in range(vCnt):

@@ -144,7 +144,7 @@ class BaseShape():
             #print("PRINTING INI INFO... \n \n \n")
             fContents, fContentType = BaseShape.isolateINISections(f)
             if fContentType is not None:
-                print(fContentType)
+                #print(fContentType)
                 for i in range(len(fContentType)):
                     #print("CONTENT TYPE = " + str(fContentType[i]) + "\n")
                     if not fContentType[i].find("collinfo\n") == -1:
