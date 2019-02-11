@@ -1,4 +1,5 @@
 import os
+from gc import collect
 from pathlib import Path
 class CmdStream():
     def getToken(line, getTokenIndex):
@@ -138,23 +139,26 @@ class BaseShape():
             return fContents, fContentType
         return fContents, fContentType# return the sections
     
-    def importIni(f):
-        #print("PRINTING INI INFO... \n \n \n")
-        fContents, fContentType = BaseShape.isolateINISections(f)
-        if fContentType is not None:
-            for i in range(len(fContentType)):
-                #print("CONTENT TYPE = " + str(fContentType[i]) + "\n")
-                if not fContentType[i].find("collinfo\n") == -1:
-                    #print("COLLINFO!!")
-                    ObjCollInfo.loadini(fContents)
-                    
-                if not fContentType[i].find("lightgroup\n") == -1:
-                    #print("LIGHT GROUP!!")
-                    LightGroup.loadini(fContents)
-                    
-                if not fContentType[i].find("routes\n") or fContentType[i].find("point\n") or fContentType[i].find("link\n") == -1:
-                   # print("ROUTES!!")
-                   pass
-                else:
-                    print("ERR, UNKNOWN SECTION DETECTED")
-                    return
+    def importIni(filename, folder):
+        with CmdStream.openFileInFolder(filename, folder, "r+") as f:
+            #print("PRINTING INI INFO... \n \n \n")
+            fContents, fContentType = BaseShape.isolateINISections(f)
+            if fContentType is not None:
+                print(fContentType)
+                for i in range(len(fContentType)):
+                    #print("CONTENT TYPE = " + str(fContentType[i]) + "\n")
+                    if not fContentType[i].find("collinfo\n") == -1:
+                        #print("COLLINFO!!")
+                        ObjCollInfo.loadini(fContents)
+                        
+                    if not fContentType[i].find("lightgroup\n") == -1:
+                        #print("LIGHT GROUP!!")
+                        LightGroup.loadini(fContents)
+                        
+                    if not fContentType[i].find("routes\n") or fContentType[i].find("point\n") or fContentType[i].find("link\n") == -1:
+                       # print("ROUTES!!")
+                       pass
+                    else:
+                        print("ERR, UNKNOWN SECTION DETECTED")
+                        return
+            collect()

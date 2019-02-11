@@ -22,10 +22,10 @@ If the implementation is easy to explain, it may be a good idea.
 Namespaces are one honking great idea -- let's do more of those!
 '''
 
-import sys
-import struct
-import os
-import io
+import sys # os stuff i assume
+import struct # for packing/unpacking vars
+import os # os commands
+import io # ?
 from yoshiStuf import *
 from gx import VertexDescriptor, VTXFMT, VTX
 
@@ -61,6 +61,7 @@ def divSections(g):
                                         inifile = f.read()
                                         ini.write(inifile.decode("shift-jis"))
                                         ini.close()
+                                        return sections, True
                         break
         return sections
 
@@ -124,7 +125,7 @@ def __enter__(self):
 
 if __name__ == "__main__":
         try:
-                var = sys.argv[1]
+                var = sys.argv[1] # try assign var to first cmdline parameter
         except IndexError:
                 print(".mod to .obj")
                 print("USAGE: drag and drop mod file onto program\n")
@@ -132,10 +133,13 @@ if __name__ == "__main__":
                 print("Special thanks to RenolY2 AKA Yoshi2 for the face reading base.")
                 
         else:
+                var = None # the var was valid so we've gotten through the exception, null it out first and then
+                del var# delete the variables reference in memory
+                
                 opcodes = [0x98,0x90,0xA0]
                 skipdiff = 0
                 with open(sys.argv[1], "rb") as f:
-                        mod_sections = divSections(f)
+                        mod_sections, hasIniFile = divSections(f)
                         
                 with open("output.obj", "w+") as obj:
                         objWrite = obj.write
@@ -148,7 +152,13 @@ if __name__ == "__main__":
                         #skip padding
                         vertices.fhandle.read(0x14)
                         for x in range(vertexNum):
-                                objWrite("v "+str(vertices.readFloat())+" "+str(vertices.readFloat())+" "+str(vertices.readFloat())+"\n")
+                                objWrite(f'v {str(vertices.readFloat())} {str(vertices.readFloat())} {str(vertices.readFloat())} \n')
+
+                        try:
+                                if hasIniFile:
+                                        BaseShape.importIni(sys.argv[1] + ".ini", "inifile")
+                        except Exception as msg:
+                                print(msg)
 
                         #Next, we will get the vertex normals
                         normals = mod_sections[0x11][1]
@@ -157,9 +167,10 @@ if __name__ == "__main__":
                         
                         #skip padding
                         normals.fhandle.read(0x14)
-                        
+
                         for x in range(normalNum):
-                                objWrite("vn "+str(normals.readFloat())+" "+str(normals.readFloat())+" "+str(normals.readFloat())+"\n")
+                                #objWrite("vn "++++" "++"\n")
+                                objWrite(f'vn {str(normals.readFloat())} {str(normals.readFloat())} {str(normals.readFloat())} \n') # most efficient python 3 string concatenation 
 
                         try:
                                 #now it is time for texture extracting
@@ -172,6 +183,7 @@ if __name__ == "__main__":
                                         with CmdStream.openFileInFolder("txe"+str(i)+".txe", "textures", "wb") as texFile:
                                                 #cache write function
                                                 texWrite = texFile.write
+                                                
                                                 width = textures.readUInt16() # get vars
                                                 height = textures.readUInt16()
                                                 unk = textures.readUInt16()
@@ -211,7 +223,7 @@ if __name__ == "__main__":
                                 vcd = VertexDescriptor()
                                 vcd.from_pikmin1(stream.readInt32(), hasNormals=0x11 in mod_sections)
                                 mtxgroupcnt = stream.readInt32()
-                                objWrite("o mesh"+str(batchNum)+"\n")
+                                objWrite(f'o mesh {str(batchNum)} \n')
 
                                 for mtxgroupnum in range(mtxgroupcnt):
                                         unkcnt = stream.readInt32()
@@ -263,7 +275,7 @@ if __name__ == "__main__":
                                                                 cPoly = triConv(cPoly, opcode)
 
                                                                 for poly in cPoly:
-                                                                        objWrite("f "+str(poly[0])+" "+str(poly[1])+" "+str(poly[2])+"\n")
+                                                                        objWrite(f'f {str(poly[0])} {str(poly[1])} {str(poly[2])} \n')
                                                         elif opcode == 0x00:
                                                                 pass
                                                         else:
@@ -276,11 +288,6 @@ if __name__ == "__main__":
                         except NameError:
                                 print("No textures to reference in obj")
 
-                        try:
-                                ini = CmdStream.openFileInFolder(sys.argv[1]+".ini", "inifile", "r+")
-                                BaseShape.importIni(ini)
-                        except Exception as msg:
-                                print(msg)
 
 
 
