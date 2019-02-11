@@ -1,3 +1,25 @@
+'''The Zen of Python, by Tim Peters
+
+Beautiful is better than ugly.
+Explicit is better than implicit.
+Simple is better than complex.
+Complex is better than complicated.
+Flat is better than nested.
+Sparse is better than dense.
+Readability counts.
+Special cases aren't special enough to break the rules.
+Although practicality beats purity.
+Errors should never pass silently.
+Unless explicitly silenced.
+In the face of ambiguity, refuse the temptation to guess.
+There should be one-- and preferably only one --obvious way to do it.
+Although that way may not be obvious at first unless you're Dutch.
+Now is better than never.
+Although never is often better than *right* now.
+If the implementation is hard to explain, it's a bad idea.
+If the implementation is easy to explain, it may be a good idea.
+Namespaces are one honking great idea -- let's do more of those!'''
+
 import sys
 import struct
 import os
@@ -12,26 +34,23 @@ def divSections(g):
         sections = {}
         result = None
         while True:
-                #setup pointer in .mod file
-                start = g.tell()
+                start = g.tell() # assign start of section
                 if 0xFFFF not in sections:
-                        #read 8 bytes of data
-                        meta = g.read(8)
                         #unpack into 2 unsigned integers, retreieve ID and length
-                        if len(meta) == 8:
+                        meta = g.read(8)
+                        if len(meta) == 8: # if the length of metadata (g.read(8)) == 8 then..
                                 ID, length = struct.unpack(">II", meta)
-                                print("ID:",struct.pack('>I',ID),"Length:",length,"bytes")
+                                print("opcode:",struct.pack('>I',ID),"Length:",length,"bytes \n")
                                 data = g.read(length)
                         
                                 result = ID, length, data
-                        else:
-                                result = None
+                                if result is not None:
+                                        ID, length, data = result
+                                        sections[ID] = (length, bStream(io.BytesIO(data)), start)
+                                else:
+                                        break
                         #if we have a proper header, put this all into sections
-                        if result is not None:
-                                ID, length, data = result
-                                sections[ID] = (length, bStream(io.BytesIO(data)), start)
-                        else:
-                                break
+                        
                 else:
                         if BaseShape.getIniFile(g):
                                 ini = open(sys.argv[1]+".ini", "w")
@@ -107,7 +126,6 @@ if __name__ == "__main__":
                 skipdiff = 0
                 with open(sys.argv[1], "rb") as f:
                         mod_sections = divSections(f)
-                print(mod_sections)
                         
                 obj = open("output.obj", "w+")
 
@@ -136,25 +154,25 @@ if __name__ == "__main__":
                         textures = mod_sections[0x20][1]
                         texNum = textures.readInt32()
                         #t.write(struct.pack(">i", texNum))
-                        print(str(texNum)+" textures found")
+                        print(str(texNum)+" textures found \n")
                         #skip padding
                         textures.fhandle.read(0x14)
                         for i in range(texNum):
                                 texFile = open("txe"+str(i)+".txe", "wb")
-                                
+                                #cache write function
+                                texWrite = texFile.write
                                 width = textures.readUInt16() # get vars
                                 height = textures.readUInt16()
                                 unk = textures.readUInt16()
                                 format = textures.readUInt16()
                                 unk2 = textures.readUInt32()
                                 
-                                texFile.write(struct.pack(">H", format)) # write vars
-                                texFile.write(struct.pack(">H", width))
-                                texFile.write(struct.pack(">H", height))
-                                texFile.write(struct.pack(">H", unk))
-                                texFile.write(struct.pack(">I", unk))
-                                print("txe",i,"data: W/H:",width,height,"format:",format)
-                                #textures.skipPadding()
+                                texWrite(struct.pack(">H", format)) # write vars
+                                texWrite(struct.pack(">H", width))
+                                texWrite(struct.pack(">H", height))
+                                texWrite(struct.pack(">H", unk))
+                                texWrite(struct.pack(">I", unk))
+                                print("txe",i,"data: W/H:",width,height,"format:",format, "\n")
                                 fpos = textures.fhandle.tell()+0x8
                                 if fpos % 0x20 == 0:
                                         continue
@@ -162,10 +180,13 @@ if __name__ == "__main__":
                                 skipdiff = skipto - textures.fhandle.tell() - 0x8
                                 textures.fhandle.read(skipdiff)
                                 print("skipped",skipdiff,"bytes of padding")
+                                
                                 for x in range(skipdiff):
-                                        texFile.write(struct.pack("x"))
+                                        texWrite(struct.pack("x"))
+
+                                        
                                 texdata = textures.fhandle.read(calcSize(width,height,format))
-                                texFile.write(texdata)
+                                texWrite(texdata)
                 except KeyError as err:
                         print("No textures found, skipping")
                 #Next we do the faces
@@ -225,6 +246,7 @@ if __name__ == "__main__":
                                                                 #Make sure posIdx isn't empty
                                                                 assert posIdx is not None
                                                                 cPoly.append(posIdx)
+                                                                
                                                         if opcode == 0x98:
                                                                 obj.write("# 0x98\n")
                                                         elif opcode == 0xA0:
