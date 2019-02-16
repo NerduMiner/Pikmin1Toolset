@@ -119,7 +119,9 @@ if 0x00 in sections and 0x00 in modSection:
     header = []
 else:
     outputMod.write(struct.pack('>I', 0x00000000))
-    outputMod.write(modSection[0x00][1])
+    outputMod.write(struct.pack('>I', modSection[0x00][0]))
+    head = modSection[0x00][1].packRead(modSection[0x00][0])
+    outputMod.write()
 
 #with open("out0x10.bin", "wb+") as vert:
 if 0x10 in sections and 0x10 in modSection:
@@ -148,25 +150,27 @@ if 0x10 in sections and 0x10 in modSection:
     write_pad32(outputMod)
     vert = []
 else:
+    #You'd have to be very stupid to get this code to run
     outputMod.write(struct.pack('>I', 0x00000010))
-    outputMod.write(modSection[0x10][0])
-    outputMod.write(modSection[0x10][1])
+    outputMod.write(struct.pack('>I', modSection[0x10][0]))
+    ver = modSection[0x10][1].packRead(modSection[0x10][0])
+    outputMod.write()
 print("Vertex data added successfully")
 
 if 0x13 in modSection:
     #Per Mesh Textures Hue Modifiers
     outputMod.write(struct.pack('>I', 0x00000013))
-    outputMod.write(modSection[0x13][0])
-    outputMod.write(modSection[0x13][1])
+    outputMod.write(struct.pack('>I', modSection[0x13][0]))
+    mesh = modSection[0x13][1].packRead(modSection[0x13][0])
+    outputMod.write(mesh)
     write_pad32(outputMod)
+print("Per Mesh Textures Hue Modifiers added successfully")
 
 #with open("out0x11.bin", "wb+") as normal:
 if 0x11 in sections and 0x11 in modSection:
     normal = []
     #Add amount of normal vertices
     normal.append(struct.pack('>i', normNum))
-    for x in range(20):
-        normal.append(struct.pack('x'))
     for x in range(normNum):
         for y in range(3):
             normie = norm[x][y]
@@ -185,34 +189,42 @@ if 0x11 in sections and 0x11 in modSection:
     normal = []
 else:
     outputMod.write(struct.pack('>I', 0x00000011))
-    outputMod.write(modSection[0x11][0])
-    outputMod.write(modSection[0x11][1])
+    outputMod.write(struct.pack('>I', modSection[0x11][0]))
+    normi = modSection[0x11][1].packRead(modSection[0x11][0])
+    for byte in normi:
+        outputMod.write(byte)
+    write_pad32(outputMod)
 print("Normal data added successfully")
 
-'''
 if 0x18 in modSection:
     #UV Mapping
     outputMod.write(struct.pack('>I', 0x00000018))
-    outputMod.write(bytes(modSection[0x18][0]))
-    outputMod.write(modSection[0x18][1])
+    outputMod.write(struct.pack('>I', modSection[0x18][0]))
+    uv = modSection[0x18][1].packRead(modSection[0x18][0])
+    for byte in uv:
+        outputMod.write(byte)
     write_pad32(outputMod)
-'''
+print("UV Mapping added successfully.")
 
-'''
 if 0x19 in modSection:
     #Unk section 0x19
     outputMod.write(struct.pack('>I', 0x00000019))
-    outputMod.write(bytes(modSection[0x19][0]))
-    outputMod.write(modSection[0x19][1])
+    outputMod.write(struct.pack('>I', modSection[0x19][0]))
+    unk19 = modSection[0x19][1].packRead(modSection[0x19][0])
+    for byte in unk19:
+        outputMod.write(byte)
     write_pad32(outputMod)
-'''
+print("Unkown section 0x19 added successfully")
 
 if 0x1A in modSection:
     #Unk section 0x1A
     outputMod.write(struct.pack('>I', 0x0000001A))
-    outputMod.write(modSection[0x1A][0])
-    outputMod.write(modSection[0x1A][1])
+    outputMod.write(struct.pack('>I', modSection[0x1A][0]))
+    unk1A = modSection[0x1A][1].packRead(modSection[0x1A][0])
+    for byte in unk1A:
+        outputMod.write(byte)
     write_pad32(outputMod)
+print("Unkown section 0x1A added successfully")
 
 #with open("out0x20.bin", "wb+") as textures:
 if 0x20 in sections and 0x20 in modSection:
@@ -236,37 +248,46 @@ if 0x20 in sections and 0x20 in modSection:
     write_pad32(outputMod)
     textures = []
 else:
-    outputMod.write(struct.pack('>I', 0x00000020))
-    outputMod.write(modSection[0x20][0])
-    outputMod.write(modSection[0x20][1])
+    try:
+        outputMod.write(struct.pack('>I', 0x00000020))
+        outputMod.write(struct.pack('>I', modSection[0x20][0]))
+        modSecB = modSection[0x20][1].packRead(modSection[0x20][0])
+        outputMod.write(modSecB)
+        write_pad32(outputMod)
+    except KeyError:
+        print("No textures associated, skipping")
 print("Texture data added")
 
-'''
+
 if 0x22 in modSection:
     #Mipmap Data Chunk
     outputMod.write(struct.pack('>I', 0x00000022))
-    outputMod.write(modSection[0x22][0])
-    outputMod.write(modSection[0x22][1])
+    outputMod.write(struct.pack('>I', modSection[0x22][0]))
+    mipB = modSection[0x22][1].packRead(modSection[0x22][0])
+    for byte in mipB:
+        outputMod.write(byte)
     write_pad32(outputMod)
-'''
+print("Mipmap Data added successfully")
 
-'''
 if 0x30 in modSection:
     #Mesh Color Definitions
     outputMod.write(struct.pack('>I', 0x00000030))
-    outputMod.write(modSection[0x30][0])
-    outputMod.write(modSection[0x30][1])
+    outputMod.write(struct.pack('>I', modSection[0x30][0]))
+    meshB = modSection[0x30][1].packRead(modSection[0x30][0])
+    for byte in meshB:
+        outputMod.write(byte)
     write_pad32(outputMod)
-'''
+print("Mesh Color Definitions added successfully")
 
-'''
 if 0x40 in modSection:
     #Unk Chunk 0x40
     outputMod.write(struct.pack('>I', 0x00000040))
-    outputMod.write(modSection[0x40][0])
-    outputMod.write(modSection[0x40][1])
+    outputMod.write(struct.pack('>I', modSection[0x40][0]))
+    unkB = modSection[0x40][1].packRead(modSection[0x40][0])
+    for byte in unkB:
+        outputMod.write(byte)
     write_pad32(outputMod)
-'''
+print("Unk section 0x40 added successfully")
 
 batchCnt = 0
 batchNum = []
@@ -331,13 +352,9 @@ if 0x50 in sections and 0x50 in modSection:
     #This is where we finally add in the face data
     for x in range(len(batchNum)):
         face.append(struct.pack(">B", opcodes[x]))
-        y = 0
-        for y in range(batchNum[y]):
-            face.append(struct.pack(">H", fooce[y][0]))
-            face.append(struct.pack(">H", fooce[y][1]))
-            face.append(struct.pack(">H", fooce[y][2]))
+        for faces in fooce[x]:
+            face.append(struct.pack(">H", faces))
     #Finally we must pad out to the next multiple of 32 bytes
-    faceoutput = "out0x50.bin"
     #Add 8 to size because of section header
     size = len(face)+8
     print(size,"bytes before padding")
@@ -361,43 +378,52 @@ if 0x50 in sections and 0x50 in modSection:
     face = []
 else:
     outputMod.write(struct.pack('>I', 0x00000050))
-    outputMod.write(modSection[0x50][0])
-    outputMod.write(modSection[0x50][1])
+    outputMod.write(struct.pack('>I', modSection[0x50][0]))
+    faces = modSection[0x50][1].packRead(modSection[0x50][0])
+    outputMod.write()
 print("Face data added completely")
 
-'''
+
 if 0x60 in modSection:
     #Unk Chunk 0x60
     outputMod.write(struct.pack('>I', 0x00000060))
-    outputMod.write(modSection[0x60][0])
-    outputMod.write(modSection[0x60][1])
+    outputMod.write(struct.pack('>I', modSection[0x60][0]))
+    unkBB = modSection[0x60][1].packRead(modSection[0x60][0])
+    for byte in unkBB:
+        outputMod.write(byte)
     write_pad32(outputMod)
-'''
+print("unk section 0x60 added successfully")
+
 
 if 0x80 in modSection:
     #Texture Palettes Chunk
     outputMod.write(struct.pack('>I', 0x00000080))
-    outputMod.write(modSection[0x80][0])
-    outputMod.write(modSection[0x80][1])
+    outputMod.write(struct.pack('>I', modSection[0x80][0]))
+    texB = modSection[0x80][1].packRead(modSection[0x80][0])
+    for byte in texB:
+        outputMod.write(byte)
     write_pad32(outputMod)
+print("Texture Palettes added successfully")
 
-'''
 if 0x100 in modSection:
     #Floor Collision Geometry
     outputMod.write(struct.pack('>I', 0x00000100))
-    outputMod.write(modSection[0x100][0])
-    outputMod.write(modSection[0x100][1])
+    outputMod.write(struct.pack('>I', modSection[0x100][0]))
+    floorB = modSection[0x100][1].packRead(modSection[0x100][0])
+    for byte in floorB:
+        outputMod.write(byte)
     write_pad32(outputMod)
-'''
+print("Floor Collision Geometry added successfully")
 
-'''
 if 0x110 in modSection:
     #MapMgr bounds + Coll Tris
     outputMod.write(struct.pack('>I', 0x00000110))
-    outputMod.write(modSection[0x110][0])
-    outputMod.write(modSection[0x110][1])
+    outputMod.write(struct.pack('>I', modSection[0x110][0]))
+    mapB = modSection[0x110][1].packRead(modSection[0x110][0])
+    for byte in mapB:
+        outputMod.write(byte)
     write_pad32(outputMod)
-'''
+print("MapMgr Bounds + Coll Tris added successfully")
 
 if 0xFFFF in sections and 0xFFFF in modSection:
     EOF = []
@@ -415,7 +441,23 @@ if 0xFFFF in sections and 0xFFFF in modSection:
     write_pad32(outputMod)
     EOF = []
 print("EOF Chunk added successfully")
-    #P S E U D O C O D E
+try:
+    with open(sys.argv[3], 'rb') as ini:
+        outputModWrite = outputMod.write
+        while True:
+            try:
+                char = struct.pack(">c", ini.read(1))
+                print(char)
+                outputModWrite(char)
+            except Exception:
+                print("done")
+                break
+except IndexError:
+    print("No ini found, skipping")
+print("ini writing finished")
+
+
+#P S E U D O C O D E
     #create header data
     #face.write(headerData)
     #for x in range(faceNum):

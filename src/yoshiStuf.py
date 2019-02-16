@@ -69,5 +69,12 @@ class bStream():
         skipdiff = skipto - self.fhandle.tell() - base
         self.fhandle.read(skipdiff)
 
+    def packRead(self, length):
+        dataList = []
+        dataListAppend = dataList.append
+        for x in range(length):
+            dataListAppend(self.fhandle.read(1))
+        return dataList
+
     def close(self):
         self.fhandle.close()
