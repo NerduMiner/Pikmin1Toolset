@@ -65,9 +65,7 @@ def divSections(g):
                     #if we have a proper header, put this all into sections
         else:
             if BaseShape.getIniFile(g):
-                ini = CmdStream.openFileInFolder(sys.argv[1]+".ini", "inifile", "w")
-                ini.close() #close
-                with CmdStream.openFileInFolder(sys.argv[1]+".ini", "inifile", "r+") as ini:
+                with CmdStream.openFileInFolder(sys.argv[1]+".ini", "inifile", "w+") as ini:
                     inifile = f.read()
                     ini.write(inifile.decode("shift-jis"))
                     ini.close()
@@ -169,7 +167,7 @@ if __name__ == "__main__":
         #triangle start
         stream, triStart = mod_sections[0x50][1], mod_sections[0x50][2]
         print("faces section extracted")
-
+        
         with open("output.obj", "w") as obj:
             objWrite = obj.write
 
