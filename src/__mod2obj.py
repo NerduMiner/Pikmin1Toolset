@@ -237,24 +237,34 @@ if __name__ == "__main__":
             batchCount = stream.readInt32()
             stream.skipPadding()
 
+            # The faces are placed into batches
             for batchNum in range(batchCount):
+                #Read unknown data
                 unkown1 = stream.readInt32()
+                objWrite(f'###batch_unk1 {str(unkown1)} \n')
                 vcd = VertexDescriptor()
                 vcd.from_pikmin1(stream.readInt32(), hasNormals=0x11 in mod_sections)
+                objWrite(f'###batch_vcd {str(vcd)} \n')
                 mtxgroupcnt = stream.readInt32()
-                objWrite('o mesh {str(batchNum)} \n')
+                objWrite(f'###batch_mtxgroupcnt {str(mtxgroupcnt)} \n')
+                objWrite(f'o mesh {str(batchNum)} \n')
 
                 for mtxgroupnum in range(mtxgroupcnt):
                     unkcnt = stream.readInt32()
+                    objWrite(f'###mtx_unkcnt {str(unkcnt)} \n')
                     vals = []
                     # for i in range(unkcnt):
                     map(vals.append(stream.readUInt16()), range(unkcnt))
                     dsplstcnt = stream.readInt32()
+                    objWrite(f'###mtx_dsplstcnt {str(dsplstcnt)} \n')
 
                     for dsplstnum in range(dsplstcnt):
                         unkown1 = stream.readUInt32()
+                        objWrite(f'###dsp_unk1 {str(unkown1)} \n')
                         cmdcnt = stream.readUInt32()
+                        objWrite(f'###dsp_cmdcnt {str(cmdcnt)} \n')
                         dspsize = stream.readUInt32()
+                        objWrite(f'###dsp_size {str(dspsize)} \n')
 
                         stream.skipPadding()
 
@@ -269,6 +279,7 @@ if __name__ == "__main__":
 
                             if opcode == 0x98 or opcode == 0xA0:
                                 vCnt = stream.readUInt16()
+                                objWrite(f'###dsp_vCnt {str(vCnt)} \n')
                                 cPoly = []
                                 for x in range(vCnt):
                                     #print("guess what, im in a range called vCNT")
