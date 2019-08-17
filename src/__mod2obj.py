@@ -241,7 +241,7 @@ if __name__ == "__main__":
             for batchNum in range(batchCount):
                 #Read unknown data
                 unkown1 = stream.readInt32()
-                objWrite(f'###batch_unk1 {str(unkown1)} \n')
+                objWrite(f'####batch_unk1 {str(unkown1)} \n')
                 vcd = VertexDescriptor()
                 vcd.from_pikmin1(stream.readInt32(), hasNormals=0x11 in mod_sections)
                 objWrite(f'###batch_vcd {str(vcd)} \n')

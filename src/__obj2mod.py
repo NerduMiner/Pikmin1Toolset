@@ -56,12 +56,16 @@ def divSections(g):
 with open(sys.argv[1], "r") as obj:
     for line in obj:
         if ('vn') in line:
+            if ('###') in line:
+                continue
             if 0x11 not in sections:
                 sections.append(0x11)
             line = line[2:]
             norm.append([float(x) for x in line.split()])
             normNum += 1
         if ('v') in line:
+            if ('###') in line:
+                continue
             if 0x10 not in sections:
                 sections.append(0x10)
             line = line[1:]
@@ -69,11 +73,15 @@ with open(sys.argv[1], "r") as obj:
             #print(array)
             vertexNum += 1
         if ('##') in line:
+            if ('###') in line:
+                continue
             if 0x20 not in sections:
                 sections.append(0x20)
             texNum = int(line[2:])
             print(texNum,"textures found")
         if ('#') in line:
+            if ('###') in line:
+                continue
             facedump.write(line)
             line = line[1:]
         if ('f') in line:
