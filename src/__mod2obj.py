@@ -27,7 +27,7 @@ str(a) + " " + str(b) + " " + str(c)
 
 if result is not None:
         print("yoite")
-        
+
 is slower than
 
 try:
@@ -44,7 +44,7 @@ from gx import VertexDescriptor, VTXFMT, VTX
 # Work done by NerduMiner, Ambrosia
 from ambroStuf import *
 def divSections(g):
-    sections = {} 
+    sections = {}
     result = None
     while True:
         start = g.tell() # assign start of section
@@ -64,8 +64,10 @@ def divSections(g):
                     break
                     #if we have a proper header, put this all into sections
         else:
-            if BaseShape.getIniFile(g):
-                with CmdStream.openFileInFolder(sys.argv[1]+".ini", "inifile", "w+") as ini:
+            baseShape = BaseShape()
+            if baseShape.getIniFile(g):
+                cmdStream = CmdStream()
+                with cmdStream.openFileInFolder(sys.argv[1]+".ini", "inifile", "w+") as ini:
                     inifile = f.read()
                     ini.write(inifile.decode("shift-jis"))
                     ini.close()
@@ -76,10 +78,10 @@ def divSections(g):
 def triConv(poly, opc):
     if len(poly) == 3:
         return [poly]
-                
+
     newTri = []
     newTriAppend = newTri.append
-        
+
     if (opc == 0x98):
         n = 2
         pep = range(len(poly)-2)
@@ -97,7 +99,7 @@ def triConv(poly, opc):
             if (Tri[0] != Tri[1] and Tri[1] != Tri[2] and Tri[2] != Tri[0]):
                 newTriAppend(Tri)
             n += 1
-        
+
     if (opc == 0xA0):
         pop = range(1, len(poly)-1)
         for x in pop:
@@ -149,7 +151,7 @@ if __name__ == "__main__":
 
     var = None # the var was valid so we've gotten through the exception, null it out first and then
     del var# delete the variables reference in memory
-                
+
     opcodes = [0x98,0x90,0xA0]
 
     skipdiff = 0
@@ -167,7 +169,7 @@ if __name__ == "__main__":
         #triangle start
         stream, triStart = mod_sections[0x50][1], mod_sections[0x50][2]
         print("faces section extracted")
-        
+
         with open("output.obj", "w") as obj:
             objWrite = obj.write
 
@@ -183,7 +185,7 @@ if __name__ == "__main__":
             print(normalNum,"vertex normals found.")
 
             for i in range(normalNum):
-                objWrite(f'vn {str(normals.readFloat())} {str(normals.readFloat())} {str(normals.readFloat())} \n') # faster than for loop
+                objWrite(f"vn {str(normals.readFloat())} {str(normals.readFloat())} {str(normals.readFloat())} \n") # faster than for loop
 
 
             #skip padding
@@ -197,7 +199,8 @@ if __name__ == "__main__":
                 #skip padding
                 textures.fhandle.read(0x14)
                 for i in range(texNum):
-                    with CmdStream.openFileInFolder("txe"+str(i)+".txe", "textures", "wb") as texFile:
+                    cmdStream = CmdStream()
+                    with cmdStream.openFileInFolder("txe"+str(i)+".txe", "textures", "wb") as texFile:
                         #cache write function
                         texWrite = texFile.write
 
@@ -216,7 +219,7 @@ if __name__ == "__main__":
                         fpos = textures.fhandle.tell()+0x8
                         if fpos % 0x20 == 0:
                             continue
-                        skipto = (fpos - (fpos % 0x20)) + 0x20 
+                        skipto = (fpos - (fpos % 0x20)) + 0x20
                         skipdiff = skipto - textures.fhandle.tell() - 0x8
                         textures.fhandle.read(skipdiff)
                         print("skipped",skipdiff,"bytes of padding")
@@ -239,7 +242,7 @@ if __name__ == "__main__":
                 vcd = VertexDescriptor()
                 vcd.from_pikmin1(stream.readInt32(), hasNormals=0x11 in mod_sections)
                 mtxgroupcnt = stream.readInt32()
-                objWrite(f'o mesh {str(batchNum)} \n')
+                objWrite('o mesh {str(batchNum)} \n')
 
                 for mtxgroupnum in range(mtxgroupcnt):
                     unkcnt = stream.readInt32()

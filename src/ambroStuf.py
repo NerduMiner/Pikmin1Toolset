@@ -11,7 +11,7 @@ class CmdStream():
         except IndexError:
             pass
 
-    def openFileInFolder(filename, directoryname, mode):
+    def openFileInFolder(self, filename, directoryname, mode):
         try:
             os.makedirs(directoryname)
         except OSError:
@@ -19,8 +19,8 @@ class CmdStream():
         name = directoryname + "/" + Path(filename).name
         f = open(name, mode)
         return f
-        
-        
+
+
 
 class ObjCollInfo():
     def loadini(fContents):
@@ -48,7 +48,7 @@ class ObjCollInfo():
 
             if not line.find("collinfo") == -1:
                 print("REPEATING COLLINFO FUNC!!!")
-                
+
             if not line.find("}") == -1:
                 return
 
@@ -76,7 +76,7 @@ class LightGroup():
             if not line.find("lightflare") == -1:
                 print("lightflare detected! \n")
                 LightFlare.loadini(fContents)
-                
+
             if not line.find("}") == -1:
                 return
 
@@ -92,12 +92,12 @@ class LightFlare():
 
             if not line.find("pos") == -1:
                 print("position of lightflare : " + CmdStream.getToken(line, 1) + CmdStream.getToken(line, 2) + CmdStream.getToken(line, 3))
-                
+
             if not line.find("}") == -1: # if closed bracket
                 return
 
 class BaseShape():
-    def getIniFile(f):
+    def getIniFile(self, f):
         origin = f.tell()
         f.seek(-4,2) # move 4 bytes away from end
         test = f.read() # read the rest of the file
@@ -116,7 +116,7 @@ class BaseShape():
         for line in f:
             descriptor = CmdStream.getToken(line, 0) #CmdStream::isToken
 
-            if not (line and line.strip()): # if line is white space 
+            if not (line and line.strip()): # if line is white space
                 continue # just go to the next iteration
 
             if not line.find("{") == -1: # if open bracket
@@ -127,7 +127,7 @@ class BaseShape():
             if not line.find("}") == -1: # if closed bracket
                 fContents.append(CmdStream.getToken(line, 0) + "\n") # append that line to the array
                 sectionClosed = sectionClosed + 1
-                
+
                 sectionRead = False
 
             if sectionRead: # if section has been found
@@ -138,7 +138,7 @@ class BaseShape():
             #print("section content types are:\n"+"".join(fContentType))
             return fContents, fContentType
         return fContents, fContentType# return the sections
-    
+
     def importIni(filename, folder):
         with CmdStream.openFileInFolder(filename, folder, "r+") as f:
             #print("PRINTING INI INFO... \n \n \n")
@@ -150,11 +150,11 @@ class BaseShape():
                     if not fContentType[i].find("collinfo\n") == -1:
                         #print("COLLINFO!!")
                         ObjCollInfo.loadini(fContents)
-                        
+
                     if not fContentType[i].find("lightgroup\n") == -1:
                         #print("LIGHT GROUP!!")
                         LightGroup.loadini(fContents)
-                        
+
                     if not fContentType[i].find("routes\n") or fContentType[i].find("point\n") or fContentType[i].find("link\n") == -1:
                        # print("ROUTES!!")
                        pass

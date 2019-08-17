@@ -52,6 +52,7 @@ def divSections(g):
             break
     return sections
 
+#sys.argv[1] == OBJ FILE
 with open(sys.argv[1], "r") as obj:
     for line in obj:
         if ('vn') in line:
@@ -88,6 +89,7 @@ with open(sys.argv[1], "r") as obj:
     print(str(faceNum) + " faces found.")
 facedump.close()
 
+#sys.argv[2] == MOD FILE?
 with open(sys.argv[2], "rb") as f:
     modSection = divSections(f)
 
@@ -234,7 +236,7 @@ if 0x20 in sections and 0x20 in modSection:
     for x in range(20):
         textures.append(struct.pack('x'))
     for x in range(texNum):
-        txes = open(str("txe"+str(x)+".txe"), 'rb')
+        txes = open(str("textures/txe"+str(x)+".txe"), 'rb')
         textures.append(txes.read())
     outputMod.write(struct.pack('>I', 0x00000020))
     outputMod.write(struct.pack('>I', len(textures)))
@@ -442,6 +444,7 @@ if 0xFFFF in sections and 0xFFFF in modSection:
     EOF = []
 print("EOF Chunk added successfully")
 try:
+    #sys.argv[3] as INI?
     with open(sys.argv[3], 'rb') as ini:
         outputModWrite = outputMod.write
         while True:
