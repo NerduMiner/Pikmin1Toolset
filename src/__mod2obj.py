@@ -37,32 +37,36 @@ except result is None:
 '''
 import struct # for packing/unpacking vars
 import io # ?
+import sys
 from yoshiStuf import *
 from gx import VertexDescriptor, VTXFMT, VTX
-
+from plyStuf import *
+from dmdStuf import *
+from ambroStuf import *
 # Base provided by Yoshi2(RenolY2)
 # Work done by NerduMiner, Ambrosia
-from ambroStuf import *
+
+
 def divSections(g):
     sections = {}
     result = None
     while True:
         start = g.tell() # assign start of section
         if 0xFFFF not in sections:
-            #unpack into 2 unsigned integers, retreieve ID and length
+            # unpack into 2 unsigned integers, retreieve ID and length
             meta = g.read(8)
             if len(meta) == 8: # if the length of metadata (g.read(8)) == 8 then..
                 ID, length = struct.unpack(">II", meta)
-                print("opcode:",struct.pack('>I',ID),"Length:",length,"bytes \n")
+                print("opcode:", struct.pack('>I', ID), "Length:", length, "bytes \n")
                 data = g.read(length)
 
                 result = ID, length, data
-                try:# result is not None:
+                try:  # result is not None:
                     ID, length, data = result
                     sections[ID] = (length, bStream(io.BytesIO(data)), start)
                 except result is None:
                     break
-                    #if we have a proper header, put this all into sections
+                    # if we have a proper header, put this all into sections
         else:
             baseShape = BaseShape()
             if baseShape.getIniFile(g):
@@ -74,6 +78,7 @@ def divSections(g):
                     return sections, True
             break
     return sections, False
+
 
 def triConv(poly, opc):
     if len(poly) == 3:
@@ -89,14 +94,14 @@ def triConv(poly, opc):
             Tri = []
             TriAppend = Tri.append
             isEven = (n%2) == 0
-            #if n == 2:
-            #1. append first poly
-            #2. append last poly since n is even
-            #3. append second poly since n is even
+            # if n == 2:
+            # 1. append first poly
+            # 2. append last poly since n is even
+            # 3. append second poly since n is even
             TriAppend(poly[n-2])
             TriAppend((poly[n] if isEven else poly[n-1]))
             TriAppend((poly[n-1] if isEven else poly[n]))
-            if (Tri[0] != Tri[1] and Tri[1] != Tri[2] and Tri[2] != Tri[0]):
+            if Tri[0] != Tri[1] and Tri[1] != Tri[2] and Tri[2] != Tri[0]:
                 newTriAppend(Tri)
             n += 1
 
@@ -105,14 +110,15 @@ def triConv(poly, opc):
         for x in pop:
             Tri = []
             TriAppend = Tri.append
-            #append tris second, last, first
+            # append tris second, last, first
             TriAppend(poly[x])
             TriAppend(poly[x+1])
             TriAppend(poly[0])
-            if (Tri[0] != Tri[1] and Tri[1] != Tri[2] and Tri[2] != Tri[0]):
+            if Tri[0] != Tri[1] and Tri[1] != Tri[2] and Tri[2] != Tri[0]:
                 newTriAppend(Tri)
 
     return newTri
+
 
 def countOnes(n, max=32):
     x = 0
@@ -121,27 +127,30 @@ def countOnes(n, max=32):
             x += 1
     return x
 
+
 def calcSize(w, h, format):
-    if format in (0,2,6):
+    if format in (0, 2, 6):
         return w*h*2
     elif format == 1:
         return w*h//2
     elif format == 3:
         return w*h//2
-    elif format in (4,5,8):
+    elif format in (4, 5, 8):
         return w*h
     elif format == 7:
         return w*h*4
     else:
-        raise RuntimeError("unkown texture format: ",format)
+        raise RuntimeError("unknown texture format: ", format)
+
 
 def __enter__(self):
     return self
 
+
 print(__name__)
 if __name__ == "__main__":
     try:
-        var = sys.argv[1] # try assign var to first cmdline parameter
+        var = sys.argv[1]  # try assign var to first cmdline parameter
     except IndexError:
         print(".mod to .obj")
         print("USAGE: drag and drop mod file onto program\n")
@@ -158,45 +167,54 @@ if __name__ == "__main__":
     with open(sys.argv[1], "rb") as f:
         mod_sections, hasIniFile = divSections(f)
 
-        #First we're gonna get them sweet sweet verticies
+        # First we're gonna get them sweet sweet vertices
         vertices = mod_sections[0x10][1]
         print("vertices section extracted")
 
-        #Next, we will get the vertex normals
+        # Next, we will get the vertex normals
         normals = mod_sections[0x11][1]
         print("normals section extracted")
 
-        #triangle start
+        # triangle start
         stream, triStart = mod_sections[0x50][1], mod_sections[0x50][2]
         print("faces section extracted")
 
         with open("output.obj", "w") as obj:
             objWrite = obj.write
+            dmdWrite = dmdStuf("output")
+            dmdWrite.initDMD()
 
             vertexNum = vertices.readInt32()
+            dmdWrite.initVert(vertexNum)
             print(str(vertexNum)+" vertices found.")
-            #skip padding
+            # skip padding
             vertices.fhandle.read(0x14)
 
             for i in range(vertexNum):
-                objWrite(f'v {str(vertices.readFloat())} {str(vertices.readFloat())} {str(vertices.readFloat())} \n')
+                vert1, vert2, vert3 = vertices.readFloat(), vertices.readFloat(), vertices.readFloat()
+                objWrite(f'v {str(vert1)} {str(vert2)} {str(vert3)} \n')
+                dmdWrite.addVert(vert1, vert2, vert3)
 
+            dmdWrite.completeSection()
             normalNum = normals.readInt32()
-            print(normalNum,"vertex normals found.")
+            dmdWrite.initNorm(normalNum)
+            print(normalNum, "vertex normals found.")
 
             for i in range(normalNum):
-                objWrite(f"vn {str(normals.readFloat())} {str(normals.readFloat())} {str(normals.readFloat())} \n") # faster than for loop
+                norm1, norm2, norm3 = normals.readFloat(), normals.readFloat(), normals.readFloat()
+                objWrite(f"vn {str(norm1)} {str(norm2)} {str(norm3)} \n") # faster than for loop
+                dmdWrite.addNorm(norm1, norm2, norm3)
 
-
-            #skip padding
+            dmdWrite.completeSection()
+            # skip padding
             normals.fhandle.read(0x14)
 
             try:
-                #now it is time for texture extracting
+                # now it is time for texture extracting
                 textures = mod_sections[0x20][1]
                 texNum = textures.readInt32()
                 print(str(texNum)+" textures found \n")
-                #skip padding
+                # skip padding
                 textures.fhandle.read(0x14)
                 for i in range(texNum):
                     cmdStream = CmdStream()
@@ -204,35 +222,34 @@ if __name__ == "__main__":
                         #cache write function
                         texWrite = texFile.write
 
-                        width = textures.readUInt16() # get vars
+                        width = textures.readUInt16()  # get vars
                         height = textures.readUInt16()
                         unk = textures.readUInt16()
                         format = textures.readUInt16()
                         unk2 = textures.readUInt32()
 
-                        texWrite(struct.pack(">H", format)) # write vars
+                        texWrite(struct.pack(">H", format))  # write vars
                         texWrite(struct.pack(">H", width))
                         texWrite(struct.pack(">H", height))
                         texWrite(struct.pack(">H", unk))
                         texWrite(struct.pack(">I", unk))
-                        print("txe",i,"data: W/H:",width,height,"format:",format, "\n")
+                        print("txe", i, "data: W/H:", width, height, "format:", format, "\n")
                         fpos = textures.fhandle.tell()+0x8
                         if fpos % 0x20 == 0:
                             continue
                         skipto = (fpos - (fpos % 0x20)) + 0x20
                         skipdiff = skipto - textures.fhandle.tell() - 0x8
                         textures.fhandle.read(skipdiff)
-                        print("skipped",skipdiff,"bytes of padding")
+                        print("skipped", skipdiff, "bytes of padding")
 
                         for x in range(skipdiff):
                             texWrite(struct.pack("x"))
 
-
-                        texdata = textures.fhandle.read(calcSize(width,height,format))
+                        texdata = textures.fhandle.read(calcSize(width, height, format))
                         texWrite(texdata)
             except KeyError as err:
                 print("No textures found, skipping")
-            #Next we do the faces
+            #  Next we do the faces
             print("vertices start at", hex(triStart), "\n")
             batchCount = stream.readInt32()
             stream.skipPadding()
@@ -282,8 +299,8 @@ if __name__ == "__main__":
                                 objWrite(f'###dsp_vCnt {str(vCnt)} \n')
                                 cPoly = []
                                 for x in range(vCnt):
-                                    #print("guess what, im in a range called vCNT")
-                                    #posIdx = None
+                                    # print("guess what, im in a range called vCNT")
+                                    # posIdx = None
                                     for attr, format in vcd.active_attributes():
                                         if attr == VTX.Position:
                                             posIdx = stream.readUInt16()+1
@@ -293,7 +310,7 @@ if __name__ == "__main__":
                                             stream.readUInt16()
                                         else:
                                             raise RuntimeError("format error")
-                                    #Make sure posIdx isn't empty
+                                    # Make sure posIdx isn't empty
                                     assert posIdx is not None
                                     cPoly.append(posIdx)
 
@@ -308,7 +325,7 @@ if __name__ == "__main__":
                             elif opcode == 0x00:
                                 pass
                             else:
-                                raise RuntimeError("unkown opcode "+str(opcode))
+                                raise RuntimeError("unknown opcode "+str(opcode))
                         assert stream.fhandle.tell() == endDsplist
 
                         stream.fhandle.seek(dspStart + dspsize)

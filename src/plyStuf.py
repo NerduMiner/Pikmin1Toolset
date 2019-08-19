@@ -1,14 +1,11 @@
-import os
-
-
 class plyStuf:
-    """Contains the methods needed to create a .ply file"""
+
 
     def __init__(self, filename):
         self.filename = filename
         self.ply = open(filename + ".ply", 'w+')
         self.temp = open(filename + ".tmp", 'w+')
-
+        self.faceNum = 0
 
     def initPLY(self, modname):
         """Creates the starting part of the header, should run first"""
@@ -24,9 +21,9 @@ class plyStuf:
         self.ply.write("property float y\n")
         self.ply.write("property float z\n")
 
-    def defineFace(self, faceNum):
+    def defineFace(self):
         """Creates the last part of the header, should run last when the number of faces is found"""
-        self.ply.write("element face "+str(faceNum)+"\n")
+        self.ply.write("element face "+str(self.faceNum)+"\n")
         self.ply.write("property list uchar int vertex_index\n")
         self.ply.write("end_header\n")
 
@@ -35,6 +32,7 @@ class plyStuf:
 
     def addFace(self, poly):
         self.temp.write(f'3 {str(poly[0]-1)} {str(poly[1]-1)} {str(poly[2]-1)}\n')
+        self.faceNum += 1
 
     def addData(self):
         self.temp.close()
