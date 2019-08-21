@@ -13,21 +13,11 @@ class dmdStuf:
     def initDMD(self):
         """Creates the header of the model file, placeholder values used"""
         self.dmd.write("<INFORMATION>\n{")
-        self.dmd.write("       version 3.109\n")
-        self.dmd.write("        filename        D:/" + self.filename + "\n")
-        self.dmd.write("        toolname        Maya\n")
-        self.dmd.write("        source  'Maya 4.0.1 - (file.mb)'\n")
-        self.dmd.write("        date    2019/8/19\n")
-        self.dmd.write("        time    12:50:24\n")
-        self.dmd.write("        host    DMD2MOD\n")
-        self.dmd.write("        magnify 1.000000\n")
-        #self.dmd.write("        suitable_joint  cull    3\n")
         self.dmd.write("        numjoints        0\n")
-        self.dmd.write("        scalingrule      maya\n")
-        self.dmd.write("        primitive        TriangleList\n")
+        self.dmd.write("        scalingrule      softimage\n") # can only be on (classic scaling system), else softimage scaling system
+        self.dmd.write("        primitive        TriangleStrip\n") # can only be trianglestrip, otherwise its something else lol idk
         self.dmd.write("        embossbump       off\n")
-        self.dmd.write("        compress_mat     off\n")
-        self.dmd.write("        vtxclranm        nouse\n}\n")
+        self.dmd.write("}\n\n")
 
     def initVert(self, vertexNum):
         """Sets up the first part of the <VTX_POS> section of the model"""
@@ -78,8 +68,7 @@ class dmdStuf:
         # position matrix, tex0-tex7 matrix, vertex position, normal, color0, color1, tex0 to tex7 coordinates
         self.dmd.write("\tvcd 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0\n")
         #self.dmd.write("\ttotal_nodes " + str(faceNum) + "\n")
-        self.dmd.write("\tnmtx_lists 0\n")
-        self.dmd.write("\tnmtxs  0\n")
+        self.dmd.write("\tnmtx_lists " + str(faceNum) + " 0 0 0\n")
         #self.dmd.write("\tnnodess " + str(faceNum) + "\n")
         self.dmd.write("\tface    front\n")
 
