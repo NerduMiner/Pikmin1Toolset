@@ -181,11 +181,11 @@ if __name__ == "__main__":
 
         with open("output.obj", "w") as obj:
             objWrite = obj.write
-            dmdWrite = dmdStuf("output")
-            dmdWrite.initDMD()
+            #dmdWrite = dmdStuf("output")
+            #dmdWrite.initDMD()
 
             vertexNum = vertices.readInt32()
-            dmdWrite.initVert(vertexNum)
+            #dmdWrite.initVert(vertexNum)
             print(str(vertexNum)+" vertices found.")
             # skip padding
             vertices.fhandle.read(0x14)
@@ -193,24 +193,28 @@ if __name__ == "__main__":
             for i in range(vertexNum):
                 vert1, vert2, vert3 = vertices.readFloat(), vertices.readFloat(), vertices.readFloat()
                 objWrite(f'v {str(vert1)} {str(vert2)} {str(vert3)} \n')
-                dmdWrite.addVert(vert1, vert2, vert3)
+                #dmdWrite.addVert(vert1, vert2, vert3)
 
-            dmdWrite.completeSection()
+            #dmdWrite.finishVert()
+            #dmdWrite.completeSection()
             normalNum = normals.readInt32()
-            dmdWrite.initNorm(normalNum)
+            #dmdWrite.initNorm(normalNum)
             print(normalNum, "vertex normals found.")
 
             for i in range(normalNum):
                 norm1, norm2, norm3 = normals.readFloat(), normals.readFloat(), normals.readFloat()
                 objWrite(f"vn {str(norm1)} {str(norm2)} {str(norm3)} \n") # faster than for loop
-                dmdWrite.addNorm(norm1, norm2, norm3)
+                #dmdWrite.addNorm(norm1, norm2, norm3)
 
-            dmdWrite.completeSection()
+            #dmdWrite.finishNorm()
+            #dmdWrite.completeSection()
             # skip padding
+            print("FINISHING UP NORMAL READING!!!")
             normals.fhandle.read(0x14)
 
             try:
                 # now it is time for texture extracting
+                print("READING TEXTURES!!!")
                 textures = mod_sections[0x20][1]
                 texNum = textures.readInt32()
                 print(str(texNum)+" textures found \n")
@@ -254,9 +258,12 @@ if __name__ == "__main__":
             batchCount = stream.readInt32()
             stream.skipPadding()
 
+            #dmdWrite.initPoly()
+
             # The faces are placed into batches
             for batchNum in range(batchCount):
                 #Read unknown data
+                print("READING BATCH DATA!!!")
                 unkown1 = stream.readInt32()
                 objWrite(f'####batch_unk1 {str(unkown1)} \n')
                 vcd = VertexDescriptor()
@@ -267,6 +274,7 @@ if __name__ == "__main__":
                 objWrite(f'o mesh {str(batchNum)} \n')
 
                 for mtxgroupnum in range(mtxgroupcnt):
+                    print("READING MTX DATA!!!")
                     unkcnt = stream.readInt32()
                     objWrite(f'###mtx_unkcnt {str(unkcnt)} \n')
                     vals = []
@@ -276,6 +284,7 @@ if __name__ == "__main__":
                     objWrite(f'###mtx_dsplstcnt {str(dsplstcnt)} \n')
 
                     for dsplstnum in range(dsplstcnt):
+                        print("READING DSPLIST DATA!!!")
                         unkown1 = stream.readUInt32()
                         objWrite(f'###dsp_unk1 {str(unkown1)} \n')
                         cmdcnt = stream.readUInt32()
@@ -283,6 +292,7 @@ if __name__ == "__main__":
                         dspsize = stream.readUInt32()
                         objWrite(f'###dsp_size {str(dspsize)} \n')
 
+                        print("stops here")
                         stream.skipPadding()
 
                         dspStart = stream.fhandle.tell()
@@ -295,6 +305,7 @@ if __name__ == "__main__":
                             opcode = stream.readUInt8()
 
                             if opcode == 0x98 or opcode == 0xA0:
+                                print("no stops here")
                                 vCnt = stream.readUInt16()
                                 objWrite(f'###dsp_vCnt {str(vCnt)} \n')
                                 cPoly = []
