@@ -42,7 +42,7 @@ class VertexDescriptor(object):
     def active_attributes(self):
         for attr in VTX:
             if self.exists(attr):
-                if (attr in (VTX.Position, VTX.Normal, VTX.Color0, VTX.Color1) 
+                if (attr in (VTX.Position, VTX.Normal, VTX.Color0, VTX.Color1)
                     or VTX.Tex0Coord <= attr <= VTX.Tex7Coord):
                     yield (attr, self.get_format(attr))
                 else:
@@ -103,35 +103,50 @@ class VertexDescriptor(object):
         for i in range(8):
             self.texcoord[i] = get_vtxformat(val & 0b11)
             val = val >> 2
-    
+
     def from_pikmin1(self, val, hasNormals=False):
         self.position = VTXFMT.INDEX16 # Position is implied to be always enabled
-    
+
         self.posmat = (val & 0b1) == 1
         val = val >> 1
-        
+
         self.texmat[1] = (val & 0b1) == 1
         val = val >> 1
-        
-        if (val & 0b1): 
+
+        if (val & 0b1):
             self.color0 = VTXFMT.INDEX16
-        val = val >> 1 
-        
+        val = val >> 1
+
         for i in range(8):
             if (val & 0b1) == 1:
                 self.texcoord[i] = VTXFMT.INDEX16
             val = val >> 1
-        
+
         if hasNormals:
             self.normal = VTXFMT.INDEX16
-        
-        
-    
+
+
+
     def __str__(self):
         return str([x for x in self.active_attributes()])
 
+    def write_dmd(self, f):
+        f.write("vcd ")
+        for  attr in self.all_attributes():
+            if attr is None:
+                f.write("0 ")
+            else:
+                attr, fmt = attr
+                if fmt is None:
+                    f.write("1 ")
+                elif fmt == VTXFMT.INDEX16:
+                    f.write("1 ")
+                else:
+                    f.write("1 ")
+        f.write("\n")
+
 if __name__ == "__main__":
-    # pikmin1descriptor 
+    # pikmin1descriptor
     # first bit: posmtx
     # second bit: tex1mtx
     # third bit: color0 (if set, color0 is Index16)

@@ -9,20 +9,40 @@ class dmdStuf:
         self.vert1Max = 0
         self.Min = 0
         self.Max = 0
+        self.index = 0
 
     def initDMD(self):
         """Creates the header of the model file, placeholder values used"""
         self.dmd.write("<INFORMATION>\n{")
-        self.dmd.write("        numjoints        0\n")
+        self.dmd.write("        magnify 1.000000")
+        self.dmd.write("        numjoints        1\n")
         self.dmd.write("        scalingrule      softimage\n") # can only be on (classic scaling system), else softimage scaling system
         self.dmd.write("        primitive        TriangleStrip\n") # can only be trianglestrip, otherwise its something else lol idk
         self.dmd.write("        embossbump       off\n")
         self.dmd.write("}\n\n")
 
+    def completeSection(self):
+        """Use to wrap up a section in the model that has variable length when done"""
+        self.dmd.write("}\n\n\n")
+
+    def addMatrix(self):
+        self.dmd.write("<VTX_MATRIX>\n{\n")
+        self.dmd.write("\tsize\t1\n")
+        self.dmd.write("\tmatrix full  0\n}\n\n\n")
+
     def initVert(self, vertexNum):
         """Sets up the first part of the <VTX_POS> section of the model"""
         self.dmd.write("<VTX_POS>\n{\n")
         self.dmd.write("        size    " + str(vertexNum) + "\n")
+
+    def addVert(self, vert1, vert2, vert3):
+        self.temp.write(f'        float {str(vert1)} {str(vert2)} {str(vert3)} \n')
+        if vert1 < self.vert1Min:
+            self.vert1Min = vert1
+            self.Min = f'{str(vert1)} {str(vert2)} {str(vert3)}'
+        elif vert1 > self.vert1Max:
+            self.vert1Max = vert1
+            self.Max = f'{str(vert1)} {str(vert2)} {str(vert3)}'
 
     def finishVert(self):
         """Completes the header of <VTX_POS> and adds the data"""
@@ -34,18 +54,17 @@ class dmdStuf:
         for line in data:
             self.dmd.write(line)
 
-    def completeSection(self):
-        """Use to wrap up a section in the model when done"""
-        self.dmd.write("}\n\n\n")
+    def initEnvenlope(self, vertexNum):
+        self.dmd.write("<ENVELOPE_XYZ>\n{\n")
+        self.dmd.write("\tsize\t" + str(vertexNum) + "\n")
+        self.dmd.write("\tmin " + self.Min + "\n")
+        self.dmd.write("\tmax " + self.Max + "\n")
 
-    def addVert(self, vert1, vert2, vert3):
-        self.temp.write(f'        float {str(vert1)} {str(vert2)} {str(vert3)} \n')
-        if vert1 < self.vert1Min:
-            self.vert1Min = vert1
-            self.Min = f'{str(vert1)} {str(vert2)} {str(vert3)}'
-        elif vert1 > self.vert1Max:
-            self.vert1Max = vert1
-            self.Max = f'{str(vert1)} {str(vert2)} {str(vert3)}'
+    def initDeformed(self, vertexNum):
+        self.dmd.write("<DEFORMED_XYZ>\n{\n}")
+        self.dmd.write("\tsize\t" + str(vertexNum) + "\n")
+        self.dmd.write("\tmin " + self.Min + "\n")
+        self.dmd.write("\tmax " + self.Max + "\n")
 
     def initNorm(self, normNum):
         """Sets up the <VTX_NRM> section of the model"""
@@ -54,6 +73,29 @@ class dmdStuf:
 
     def addNorm(self, norm1, norm2, norm3):
         self.dmd.write(f'        float {str(norm1)} {str(norm2)} {str(norm3)} \n')
+
+    def initEnNorm(self, normNum):
+        self.dmd.write("<ENVELOPE_NRM>\n{\n")
+        self.dmd.write("\tsize\t" + str(normNum) + "\n\n")
+
+    def initTexCoord(self, texNum, uvSize):
+        self.dmd.write("<TEXCOORD" + str(texNum) + ">\n{\n")
+        self.dmd.write("\tmin 0.000000 0.000000\n")
+        self.dmd.write("\tmax 1.000000 1.000000\n\n\n")
+
+    def addUVTexCoord(self, u, v):
+        self.dmd.write(f"\tfloat {str(u)} {str(v)}\n")
+
+    def initMaterial(self, texName):
+        self.dmd.write("<MATERIAL>\n{\n")
+        self.dmd.write("\tindex\t" + str(self.index) + "\n")
+        self.index +=1
+        self.dmd.write("\tname \t" + str(texName) + "\n")
+        self.dmd.write("\tcol_source  both\n")
+        self.dmd.write("\tapl_source  both\n")
+        self.dmd.write("\tmode\tEDG\n")
+        for x in range(8):
+            self.dmd.write(f"\ttexture{x}\t-1")
 
     def initPoly(self, faceNum):
         """Set up the the <POLYGON> section [PLACEHOLDER VALUES USED]"""
@@ -78,3 +120,25 @@ class dmdStuf:
         self.dmd.write("\tvcd_dat -1 -1 -1 -1 -1 -1 -1 -1 -1 " + str(poly1 - 1) + " -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1\n")
         self.dmd.write("\tvcd_dat -1 -1 -1 -1 -1 -1 -1 -1 -1 " + str(poly2 - 1) + " -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1\n")
         self.dmd.write("\tvcd_dat -1 -1 -1 -1 -1 -1 -1 -1 -1 " + str(poly3 - 1) + " -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1\n")
+
+    def addRootJoint(self):
+        """Add a root joint to the dmd model, which is needed"""
+        self.dmd.write("<JOINT>\n{\n")
+        self.dmd.write("\tindex   0\n")
+        self.dmd.write("\tname\ttop3\n")
+        self.dmd.write("\tkind\tmesh\n")
+        self.dmd.write("\tparent -1  (null)\n")
+        self.dmd.write("\tchild\t-1  (null)\n")
+        self.dmd.write("\tbrother_next\t-1  (null)\n")
+        self.dmd.write("\tbrother_prev\t-1  (null)\n\n\n")
+        self.dmd.write("\tdraw_mtx\tuse\n")
+        self.dmd.write("\tscale_compensate\toff\n")
+        self.dmd.write("\tscaling 1.000000 1.000000 1.000000\n")
+        self.dmd.write("\trotation\t0.000000 0.000000 0.000000\n")
+        self.dmd.write("\ttranslation 0.000000 0.000000 0.000000\n")
+        self.dmd.write("\tbillboard   off\n")
+        self.dmd.write("\tvolume_min  " + str(self.Min) + "\n")
+        self.dmd.write("\tvolume_max  " + str(self.Max) + "\n")
+        self.dmd.write("\tvolume_r\t" + str(self.vert1Max + 10) + "\n")
+        self.dmd.write("\tndisplays\t1\n")
+        self.dmd.write("\tdisplay 0 0\n}")

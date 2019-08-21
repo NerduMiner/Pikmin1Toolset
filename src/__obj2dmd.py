@@ -12,6 +12,7 @@ normNum = 0
 array = []
 fooce = []
 norm = []
+uv = []
 
 with open(sys.argv[1], "r") as obj:
     for line in obj:
@@ -21,6 +22,11 @@ with open(sys.argv[1], "r") as obj:
             line = line[2:]
             norm.append([float(x) for x in line.split()])
             normNum += 1
+        if ('vt') in line:
+            if ('###') in line:
+                continue
+            line = line[2:]
+            uv.append([float(x) for x in line.split()[])
         if ('v') in line:
             if ('###' or '#') in line:
                 continue
