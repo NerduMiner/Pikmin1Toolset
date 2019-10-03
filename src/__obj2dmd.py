@@ -26,7 +26,7 @@ with open(sys.argv[1], "r") as obj:
             if ('###') in line:
                 continue
             line = line[2:]
-            uv.append([float(x) for x in line.split()[])
+            uv.append([float(x) for x in line.split()])
         if ('v') in line:
             if ('###' or '#') in line:
                 continue
