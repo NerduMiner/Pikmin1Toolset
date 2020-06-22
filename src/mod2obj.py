@@ -69,7 +69,7 @@ def ConvertToObjTriangle(poly, opcode):
 if __name__ == "__main__":
     print("MOD2OBJ\n")
 
-    with open("cave.mod", "rb") as modFile:
+    with open(sys.argv[1], "rb") as modFile:
         mod_sections = SplitModToSections(modFile)
         print("Chunks found:")
         for chunk_id in mod_sections:
