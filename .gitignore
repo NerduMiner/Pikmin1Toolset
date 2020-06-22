@@ -1,3 +1,11 @@
+# MOD-related file extensions
+*.ini
+*.mod
+*.txe
+*.obj
+objCreatorLog.txt
+textures/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -5,6 +13,9 @@ __pycache__/
 
 # C extensions
 *.so
+
+# VS
+.vs/
 
 # Distribution / packaging
 .Python

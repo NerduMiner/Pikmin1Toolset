@@ -1,40 +1,3 @@
-'''
-The Zen of Python, by Tim Peters
-
-Beautiful is better than ugly.
-Explicit is better than implicit.
-Simple is better than complex.
-Complex is better than complicated.
-Flat is better than nested.
-Sparse is better than dense.
-Readability counts.
-Special cases aren't special enough to break the rules.
-Although practicality beats purity.
-Errors should never pass silently.
-Unless explicitly silenced.
-In the face of ambiguity, refuse the temptation to guess.
-There should be one-- and preferably only one --obvious way to do it.
-Although that way may not be obvious at first unless you're Dutch.
-Now is better than never.
-Although never is often better than *right* now.
-If the implementation is hard to explain, it's a bad idea.
-If the implementation is easy to explain, it may be a good idea.
-Namespaces are one honking great idea -- let's do more of those!
-
-print(f'{str(a)} {str(b)} {str(c)}')
-is faster than
-str(a) + " " + str(b) + " " + str(c)
-
-if result is not None:
-        print("yoite")
-
-is slower than
-
-try:
-
-except result is None:
-
-'''
 import struct # for packing/unpacking vars
 import io # ?
 import sys
@@ -70,8 +33,7 @@ def divSections(g):
         else:
             baseShape = BaseShape()
             if baseShape.getIniFile(g):
-                cmdStream = CmdStream()
-                with cmdStream.openFileInFolder(sys.argv[1]+".ini", "inifile", "w+") as ini:
+                with AS_OpenFileInFolder(sys.argv[1] + ".ini", "inifile", "w+") as ini:
                     inifile = f.read()
                     ini.write(inifile.decode("shift-jis"))
                     ini.close()
@@ -181,11 +143,8 @@ if __name__ == "__main__":
 
         with open("output.obj", "w") as obj:
             objWrite = obj.write
-            #dmdWrite = dmdStuf("output")
-            #dmdWrite.initDMD()
 
             vertexNum = vertices.readInt32()
-            #dmdWrite.initVert(vertexNum)
             print(str(vertexNum)+" vertices found.")
             # skip padding
             vertices.fhandle.read(0x14)
@@ -193,21 +152,14 @@ if __name__ == "__main__":
             for i in range(vertexNum):
                 vert1, vert2, vert3 = vertices.readFloat(), vertices.readFloat(), vertices.readFloat()
                 objWrite(f'v {str(vert1)} {str(vert2)} {str(vert3)} \n')
-                #dmdWrite.addVert(vert1, vert2, vert3)
 
-            #dmdWrite.finishVert()
-            #dmdWrite.completeSection()
             normalNum = normals.readInt32()
-            #dmdWrite.initNorm(normalNum)
             print(normalNum, "vertex normals found.")
 
             for i in range(normalNum):
                 norm1, norm2, norm3 = normals.readFloat(), normals.readFloat(), normals.readFloat()
                 objWrite(f"vn {str(norm1)} {str(norm2)} {str(norm3)} \n") # faster than for loop
-                #dmdWrite.addNorm(norm1, norm2, norm3)
 
-            #dmdWrite.finishNorm()
-            #dmdWrite.completeSection()
             # skip padding
             print("FINISHING UP NORMAL READING!!!")
             normals.fhandle.read(0x14)
@@ -221,8 +173,7 @@ if __name__ == "__main__":
                 # skip padding
                 textures.fhandle.read(0x14)
                 for i in range(texNum):
-                    cmdStream = CmdStream()
-                    with cmdStream.openFileInFolder("txe"+str(i)+".txe", "textures", "wb") as texFile:
+                    with AS_OpenFileInFolder("txe"+str(i)+".txe", "textures", "wb") as texFile:
                         #cache write function
                         texWrite = texFile.write
 
@@ -253,6 +204,7 @@ if __name__ == "__main__":
                         texWrite(texdata)
             except KeyError as err:
                 print("No textures found, skipping")
+
             #  Next we do the faces
             print("vertices start at", hex(triStart), "\n")
             batchCount = stream.readInt32()
