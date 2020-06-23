@@ -6,7 +6,7 @@ A collection of tools for Pikmin 1.  This includes mod2obj, obj2mod
 - `bitstring`
 
 # mod2obj
-Converts nonrigged .MOD files into .obj or .ply models
+Converts nonrigged .MOD files into .obj
 ## Usage
 ### Windows
 Drag and drop the .mod file onto mod2obj.bat
