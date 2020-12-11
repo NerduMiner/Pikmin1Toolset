@@ -2,8 +2,7 @@ import struct
 import sys
 import os
 import io
-from yoshiStuf import *
-from dmdStuf import *
+from YL import *
 from array import array
 
 faceNum = 0

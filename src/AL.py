@@ -25,6 +25,71 @@ class ObjFile():
     def add_F32Duo(self, identifier, f1, f2):
         self.fhandle.write(f"{identifier} {f1} {f2}\n")
 
+class BaseShape():
+    def getIniFile(self, f):
+        origin = f.tell()
+        f.seek(-4,2) # move 4 bytes away from end 
+        test = f.read() # read the rest of the file 
+        f.seek(origin)
+        if not test.decode("shift-jis").find("}") == -1:
+            print("INI FILE DETECTED")
+            return True
+        return False
+    
+    def isolateINISections(f):
+        fContents = []
+        fContentType = []
+        sectionRead = False
+        sectionOpened = 0
+        sectionClosed = 0
+        for line in f:
+            descriptor = CmdStream.getToken(line, 0)
+            
+            if not (line and line.strip()): # if line is white space
+                continue # go to next iteration
+            
+            if not line.find("{") == -1:
+                fContentType.append(CmdStream.getToken(line, 0) + "\n")
+                sectionOpened = sectionOpened + 1
+                sectionRead = True
+            
+            if not line.find("}") == -1:
+                fContents.append(CmdStream.getToken(line, 0) + "\n")
+                sectionClosed = sectionClosed + 1
+                
+                sectionRead = False
+            
+            if sectionRead: # if section has been found
+                fContents.append(line) # append that line to the array
+            
+        if sectionOpened == sectionClosed:
+            print(str(sectionOpened) + " INI sections detected") # make sure we confirmed amount of sections
+            return fContents, fContentType
+        return fContents, fContentType
+    
+    def importIni(filename, folder):
+        with CmdStream.openFileInFolder(filename, folder, "r+") as f:
+            fContents, fContentType = BaseShape.isolateINISections(f)
+            if fContentType is not None:
+                #print(fContentType)
+                for i in range(len(fContentType)):
+                    #print("CONTENT TYPE = " + str(fContentType[i]) + "\n")
+                    if not fContentType[i].find("collinfo\n") == -1:
+                        #print("COLLINFO!!")
+                        ObjCollInfo.loadini(fContents)
+
+                    if not fContentType[i].find("lightgroup\n") == -1:
+                        #print("LIGHT GROUP!!")
+                        LightGroup.loadini(fContents)
+
+                    if not fContentType[i].find("routes\n") or fContentType[i].find("point\n") or fContentType[i].find("link\n") == -1:
+                       # print("ROUTES!!")
+                       pass
+                    else:
+                        print("ERR, UNKNOWN SECTION DETECTED")
+                        return
+            collect()
+
 # Returns specified token in file
 def GetToken(line, index):
     # Checks if the line is just whitespace

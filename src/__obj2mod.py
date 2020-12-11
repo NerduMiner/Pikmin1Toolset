@@ -3,7 +3,7 @@ import struct
 import sys
 import os
 import io
-from yoshiStuf import *
+from YL import *
 from array import array
 from datetime import datetime
 #Once we have edited or made a new obj, it's time to import

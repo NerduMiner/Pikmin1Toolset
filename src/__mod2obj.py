@@ -1,11 +1,9 @@
 import struct # for packing/unpacking vars
 import io # ?
 import sys
-from yoshiStuf import *
+from YL import *
 from gx import VertexDescriptor, VTXFMT, VTX
-from plyStuf import *
-from dmdStuf import *
-from ambroStuf import *
+from AL import *
 # Base provided by Yoshi2(RenolY2)
 # Work done by NerduMiner, Ambrosia
 
@@ -26,7 +24,7 @@ def divSections(g):
                 result = ID, length, data
                 try:  # result is not None:
                     ID, length, data = result
-                    sections[ID] = (length, bStream(io.BytesIO(data)), start)
+                    sections[ID] = (length, bStream(data), start)
                 except result is None:
                     break
                     # if we have a proper header, put this all into sections
