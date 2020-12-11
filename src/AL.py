@@ -104,7 +104,7 @@ def GetToken(line, index):
     return splitLine[index]
 
 # Returns file handle to the opened file
-def OpenFileInFolder(fileName, dirName, mode):
+def AS_OpenFileInFolder(fileName, dirName, mode):
     # Create the directory if it hadn't been created already
     if not os.path.isdir(dirName):
         os.makedirs(dirName)
